@@ -1,17 +1,20 @@
 ardour {
-    ["type"]    = "EditorAction",
+    ["type"]    = "EditorHook",
     name        = "Stem Agent Bridge",
     license     = "GPL",
     author      = "Stem",
-    description = [[JSON-RPC command server for the Stem AI agent.
-Polls ~/.stem/request.json every 200ms, executes the command against the
-session, writes ~/.stem/response.json. Start via Edit > Lua Scripts.
-NOTE: written against the Ardour 8.x Lua API; individual calls need
-verification against a live instance — see GAPS.md.]]
+    description = [[JSON-RPC command server for the Stem AI agent. Fires on
+Ardour's deci-second UI timer; reads ~/.stem/request.json, executes against
+the session, writes ~/.stem/response.json. Enable in
+Edit > Lua Scripts > Script Manager > Action Hooks.]]
 }
 
+function signals ()
+    return LuaSignal.Set():add ({[LuaSignal.LuaTimerDS] = true})
+end
+
 function factory ()
-return function ()
+return function (signal, ref, ...)
 
     local home = os.getenv("HOME")
     local dir = home .. "/.stem"
@@ -216,14 +219,15 @@ return function ()
     function handlers.undo(args) Session:undo(1) return { ok = true } end
     function handlers.save_session(args) Session:save_state("", false, false, false, false, false) return { ok = true } end
 
-    -- ---- poll loop (LuaTimerDS fires ~every 100ms of audio time) ----
-    local last_id = nil
+    -- ---- dispatch: one poll per LuaTimerDS tick (~100ms, UI thread) ----
+    -- the request file is consumed (deleted) once handled; factory locals
+    -- don't persist across ticks, so dedupe-by-id alone is not enough.
     local function dispatch()
         local raw = read_file(req_path)
         if not raw or raw == "" then return end
+        os.remove(req_path)
         local req = json.decode(raw)
-        if not req or req.id == last_id then return end
-        last_id = req.id
+        if not req then return end
         local h = handlers[req.method]
         local resp
         if h then
@@ -236,20 +240,7 @@ return function ()
         write_file(resp_path, json.encode(resp))
     end
 
-    -- register a UI timer; EditorAction context allows LuaAPI.timer? Fallback:
-    -- run a bounded loop is not acceptable in UI thread. We register via
-    -- the signal timer if available.
-    if ARDOUR.LuaAPI.usleep then
-        -- crude but effective: dedicated loop with sleep, bounded iterations
-        -- (EditorAction runs in GUI thread; prefer LuaTimerDS in a session script)
-        for _ = 1, 1000000 do
-            dispatch()
-            ARDOUR.LuaAPI.usleep(200000) -- 200ms
-        end
-    else
-        LuaDialog.Message("Stem Bridge", "Timer API unavailable; see GAPS.md",
-            LuaDialog.MessageType.Warning, LuaDialog.ButtonType.Close):run()
-    end
+    dispatch()
 
 end
 end
