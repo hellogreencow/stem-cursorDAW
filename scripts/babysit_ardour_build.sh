@@ -54,10 +54,10 @@ for round in $(seq 1 $MAX_ROUNDS); do
     fi
     prev_error="$first_error"
 
-    # check cursor-agent auth
-    if ! cursor-agent status 2>/dev/null | grep -qi "logged in\|authenticated"; then
-        if cursor-agent status 2>&1 | grep -qi "not logged in"; then
-            log "cursor-agent NOT authenticated; retrying build without AI fix in 10min"
+    # check agent auth
+    if ! agent status 2>/dev/null | grep -qi "logged in\|authenticated"; then
+        if agent status 2>&1 | grep -qi "not logged in"; then
+            log "agent NOT authenticated; retrying build without AI fix in 10min"
             sleep 600
             continue
         fi
@@ -66,9 +66,9 @@ for round in $(seq 1 $MAX_ROUNDS); do
     # build error context: errors + a little surrounding output
     errors=$(grep -B 2 -A 4 " error:" "$BUILD_LOG" | head -150)
 
-    log "invoking cursor-agent ($MODEL) to fix..."
+    log "invoking agent ($MODEL) to fix..."
     cd "$ARDOUR"
-    cursor-agent -p --model "$MODEL" --output-format text \
+    agent -p --model "$MODEL" --output-format text \
 "You are fixing macOS arm64 (Apple Silicon, clang) build errors in the Ardour
 DAW source tree at $ARDOUR. The build system is waf; do NOT run the build
 yourself (the watcher script handles rebuilds) and do NOT reconfigure.
@@ -81,7 +81,7 @@ Do not touch build flags in wscript unless an error is clearly flag-caused.
 
 Compile errors:
 $errors" >> "$LOG" 2>&1
-    log "cursor-agent round $round done; rebuilding"
+    log "agent round $round done; rebuilding"
 done
 
 log "exhausted $MAX_ROUNDS rounds without success"
