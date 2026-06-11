@@ -17,8 +17,30 @@ checking against a live 8.x instance — see GAPS.md).
 ```bash
 cd ~/Desktop/stem
 python3 -m venv venv && ./venv/bin/pip install -r requirements.txt
-export ANTHROPIC_API_KEY=sk-ant-...
 ```
+
+## Providers
+
+Stem works with any LLM provider. Pick one:
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...                  # default (Claude)
+# or
+export STEM_PROVIDER=openai OPENAI_API_KEY=sk-...
+# or
+export STEM_PROVIDER=openrouter OPENROUTER_API_KEY=sk-or-... \
+       STEM_MODEL=anthropic/claude-sonnet-4.6        # any OpenRouter model
+# or any OpenAI-compatible endpoint (Ollama, Groq, vLLM...):
+export STEM_PROVIDER=custom STEM_BASE_URL=http://localhost:11434/v1 \
+       STEM_MODEL=llama3
+```
+
+Or persist it in `~/.stem/config.json`:
+```json
+{"provider": "openrouter", "model": "anthropic/claude-sonnet-4.6", "api_key": "sk-or-..."}
+```
+
+CLI flags override everything: `--provider`, `--model`, `--api-key`, `--base-url`.
 
 ## Run
 

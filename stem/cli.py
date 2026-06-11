@@ -1,9 +1,15 @@
 """Stem CLI — minimal chat shell. The interface is not the product.
 
 Usage:
-    python -m stem.cli              # auto: Ardour if reachable, else mock
-    python -m stem.cli --mock      # force in-memory session
-    python -m stem.cli --ardour    # require live Ardour bridge
+    python -m stem.cli                      # auto: Ardour if reachable, else mock
+    python -m stem.cli --mock              # force in-memory session
+    python -m stem.cli --ardour            # require live Ardour bridge
+    python -m stem.cli --provider openrouter --model meta-llama/llama-3.3-70b
+    python -m stem.cli --provider openai
+    python -m stem.cli --provider custom --base-url http://localhost:11434/v1 --model llama3
+
+Provider/key resolution: flags > STEM_PROVIDER/STEM_MODEL/STEM_BASE_URL +
+provider key env vars > ~/.stem/config.json. See stem/agent/providers.py.
 """
 import sys
 
@@ -30,9 +36,27 @@ def pick_bridge(argv):
     return MockBridge()
 
 
+def flag_value(argv, name):
+    if name in argv:
+        i = argv.index(name)
+        if i + 1 < len(argv):
+            return argv[i + 1]
+    return None
+
+
 def main():
-    bridge = pick_bridge(sys.argv[1:])
-    agent = StemAgent(bridge)
+    argv = sys.argv[1:]
+    bridge = pick_bridge(argv)
+    agent = StemAgent(
+        bridge,
+        provider=None,
+        **{k: v for k, v in {
+            "provider": flag_value(argv, "--provider"),
+            "model": flag_value(argv, "--model"),
+            "api_key": flag_value(argv, "--api-key"),
+            "base_url": flag_value(argv, "--base-url"),
+        }.items() if v},
+    )
 
     def on_event(kind, payload):
         if kind == "tool_call":

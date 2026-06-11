@@ -1,12 +1,15 @@
-"""Stem agent loop: Claude + tool registry against a Bridge."""
-import os
+"""Stem agent loop: any LLM provider + tool registry against a Bridge.
+
+Provider-agnostic: the loop speaks the neutral message format from
+providers.py; Anthropic/OpenAI/OpenRouter/custom endpoints are adapters.
+"""
 import json
 from dataclasses import dataclass
-
-from anthropic import Anthropic
+from typing import Optional
 
 from ..bridge.base import Bridge
 from ..tools.core import registry
+from .providers import make_provider, BaseProvider
 
 SYSTEM = """You are Stem, an AI music production agent operating a real DAW \
 (Ardour) session on behalf of a producer.
@@ -25,6 +28,8 @@ velocity) from context instead of asking, unless the choice is truly \
 fundamental to the user's intent.
 - Keep replies short — producers want results, not essays."""
 
+MAX_STEPS = 25  # safety valve against tool-call loops
+
 
 @dataclass
 class ToolContext:
@@ -32,12 +37,13 @@ class ToolContext:
 
 
 class StemAgent:
-    def __init__(self, bridge: Bridge, model: str = "claude-sonnet-4-6",
-                 api_key: str = None):
-        self.client = Anthropic(api_key=api_key or os.environ.get("ANTHROPIC_API_KEY"))
-        self.model = model
+    def __init__(self, bridge: Bridge, provider: Optional[BaseProvider] = None,
+                 **provider_kwargs):
+        """provider_kwargs: provider= name, model=, api_key=, base_url= —
+        see providers.load_config for env/config-file resolution."""
+        self.provider = provider or make_provider(**provider_kwargs)
         self.ctx = ToolContext(bridge=bridge)
-        self.messages: list = []
+        self.messages: list = []   # neutral format
 
     def chat(self, user_message: str, on_event=None) -> str:
         """Run one user turn to completion (multi-step tool use). Returns the
@@ -45,35 +51,31 @@ class StemAgent:
         emit = on_event or (lambda kind, payload: None)
         self.messages.append({"role": "user", "content": user_message})
 
-        while True:
-            response = self.client.messages.create(
-                model=self.model,
-                max_tokens=4096,
-                system=SYSTEM,
-                tools=registry.definitions(),
-                messages=self.messages,
-            )
-            self.messages.append({"role": "assistant",
-                                  "content": response.content})
+        for _ in range(MAX_STEPS):
+            result = self.provider.complete(SYSTEM, self.messages,
+                                            registry.definitions())
+            self.messages.append({
+                "role": "assistant",
+                "content": result.text,
+                "tool_calls": [{"id": tc.id, "name": tc.name,
+                                "input": tc.input}
+                               for tc in result.tool_calls],
+            })
+            if result.text.strip():
+                emit("text", result.text)
 
-            if response.stop_reason != "tool_use":
-                text = "".join(b.text for b in response.content
-                               if b.type == "text")
-                emit("text", text)
-                return text
+            if not result.wants_tools:
+                return result.text
 
-            results = []
-            for block in response.content:
-                if block.type == "text" and block.text.strip():
-                    emit("text", block.text)
-                if block.type == "tool_use":
-                    emit("tool_call", {"name": block.name, "input": block.input})
-                    result = registry.execute(block.name, block.input, self.ctx)
-                    emit("tool_result", {"name": block.name, "result": result})
-                    results.append({
-                        "type": "tool_result",
-                        "tool_use_id": block.id,
-                        "content": json.dumps(result),
-                        "is_error": "error" in result,
-                    })
-            self.messages.append({"role": "user", "content": results})
+            for tc in result.tool_calls:
+                emit("tool_call", {"name": tc.name, "input": tc.input})
+                tool_result = registry.execute(tc.name, tc.input, self.ctx)
+                emit("tool_result", {"name": tc.name, "result": tool_result})
+                self.messages.append({
+                    "role": "tool",
+                    "tool_call_id": tc.id,
+                    "content": json.dumps(tool_result),
+                    "is_error": "error" in tool_result,
+                })
+
+        return "(stopped: exceeded maximum tool steps for one turn)"
