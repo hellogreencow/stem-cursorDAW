@@ -11,7 +11,7 @@ MAX_ROUNDS=25
 MODEL="${BABYSIT_MODEL:-composer-2.5}"
 
 export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig:/opt/homebrew/opt/glibmm@2.66/lib/pkgconfig:/opt/homebrew/opt/libarchive/lib/pkgconfig"
-export CFLAGS="-I/opt/homebrew/include -I/opt/homebrew/opt/libarchive/include -DDISABLE_VISIBILITY"
+export CFLAGS="-I/opt/homebrew/include -I/opt/homebrew/opt/libarchive/include -I/opt/homebrew/include/libusb-1.0 -DDISABLE_VISIBILITY"
 export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-L/opt/homebrew/lib -L/opt/homebrew/opt/libarchive/lib"
 export PATH="$HOME/.local/bin:/opt/homebrew/bin:$PATH"
@@ -68,7 +68,7 @@ for round in $(seq 1 $MAX_ROUNDS); do
 
     log "invoking agent ($MODEL) to fix..."
     cd "$ARDOUR"
-    agent -p --model "$MODEL" --output-format text \
+    agent -p --trust --model "$MODEL" --output-format text \
 "You are fixing macOS arm64 (Apple Silicon, clang) build errors in the Ardour
 DAW source tree at $ARDOUR. The build system is waf; do NOT run the build
 yourself (the watcher script handles rebuilds) and do NOT reconfigure.
