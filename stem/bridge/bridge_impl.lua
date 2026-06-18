@@ -127,6 +127,13 @@ return function ()
         return { pong = true, ardour = Session:name() }
     end
 
+    function handlers.open_stem_window(args)
+        local ok, err = pcall(function()
+            Editor:access_action("Window", "toggle-stem-assistant")
+        end)
+        return { ok = ok, err = ok and nil or tostring(err) }
+    end
+
     function handlers.get_session_overview(args)
         local tracks = {}
         for r in Session:get_routes():iter() do
