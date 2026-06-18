@@ -67,3 +67,13 @@ Ardour-9.x Lua API corrections discovered (now in bridge_impl.lua):
 Still imperfect (non-blocking): session tempo reads as inf (fallback=120),
 sample_rate reads as int64-max. Both are wrong-API-signature issues, cosmetic
 for now since chord/note placement doesn't depend on them.
+
+---
+## BUILD GOTCHA (2026-06-11): do NOT `brew install lua`
+Ardour bundles its own Lua 5.3.5 (libs/lua/lua-5.3.5). The build uses
+CXXFLAGS `-I/opt/homebrew/include`. If Homebrew's `lua` formula is installed,
+its lua.h/lauxlib.h (5.4+) sit in /opt/homebrew/include and SHADOW the bundled
+headers → version-mismatched include guards → `luaL_checknumber undeclared`
+errors compiling any file that includes LuaBridge (e.g. ardour_ui.cc).
+Fix: `brew uninstall lua`. (We only installed it for `luac` syntax-checking;
+use `python3 -c "import ..."` or the bundled luac instead.)
