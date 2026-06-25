@@ -273,6 +273,26 @@ return function ()
         return { notes = out }
     end
 
+    function handlers.import_audio(args)
+        -- Import a generated audio file (e.g. ElevenLabs vocal) as a new
+        -- audio track at the given position. Uses the editor's importer.
+        local sr = 48000
+        local ok_sr, s = pcall(function() return Session:nominal_sample_rate() end)
+        if ok_sr and s and s > 0 and s < 1000000 then sr = s end
+        local files = C.StringVector()
+        files:push_back(args.file_path)
+        local pos = Temporal.timepos_t(math.floor((args.position_seconds or 0) * sr))
+        Session:begin_reversible_command("Stem: import audio")
+        Editor:do_import(files,
+            Editing.ImportDistinctFiles, Editing.ImportAsTrack,
+            ARDOUR.SrcQuality.SrcBest,
+            ARDOUR.MidiTrackNameSource.SMFFileAndTrackName,
+            ARDOUR.MidiTempoMapDisposition.SMFTempoIgnore,
+            pos, ARDOUR.PluginInfo(), ARDOUR.Track(), false)
+        Session:commit_reversible_command(nil)
+        return { ok = true, imported = args.file_path }
+    end
+
     function handlers.set_tempo(args)
         Session:begin_reversible_command("Stem: set tempo")
         local tm = Temporal.TempoMap.write_copy()
