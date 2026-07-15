@@ -66,14 +66,50 @@ def get_midi_notes(args, ctx):
 
 class CreateTrack(BaseModel):
     name: str = Field(description="Track name, e.g. 'Chords' or 'Drums'")
+    instrument_id: Optional[str] = Field(
+        default=None,
+        description="Installed instrument id from list_instruments. Choose one "
+                    "that fits the requested role; omit only for the GM fallback.")
+    preset: Optional[str] = Field(
+        default=None,
+        description="Optional preset name advertised by list_instruments")
+
+
+class InstrumentSearch(BaseModel):
+    query: Optional[str] = Field(
+        default=None,
+        description="Optional case-insensitive filter such as piano, bass, "
+                    "drums, strings, synth, or a plugin maker")
+
+
+@registry.register(
+    "list_instruments",
+    "List every instrument plugin currently installed and scanned by Ardour, "
+    "including available presets. Use this before creating an instrument track "
+    "so you can choose the best sound for the musical role.",
+    InstrumentSearch)
+def list_instruments(args, ctx):
+    instruments = ctx.bridge.list_instruments()
+    if args.query:
+        q = args.query.casefold()
+        instruments = [
+            i for i in instruments
+            if q in " ".join(str(i.get(k, "")) for k in
+                             ("name", "creator", "category", "type")).casefold()
+        ]
+    return {"instruments": instruments, "count": len(instruments)}
 
 
 @registry.register("create_midi_track",
-                   "Create a new MIDI track. Returns track_id and action_id (undoable).",
+                   "Create a new audible MIDI instrument track. Select an "
+                   "installed instrument with list_instruments first. Returns "
+                   "track_id and action_id (undoable).",
                    CreateTrack, mutates=True)
 def create_midi_track(args, ctx):
-    track_id, action_id = ctx.bridge.create_midi_track(args.name)
-    return {"track_id": track_id, "action_id": action_id}
+    track_id, action_id = ctx.bridge.create_midi_track(
+        args.name, args.instrument_id, args.preset)
+    return {"track_id": track_id, "action_id": action_id,
+            "instrument_id": args.instrument_id, "preset": args.preset}
 
 
 class NoteSpec(BaseModel):
@@ -177,6 +213,30 @@ def undo(args, ctx):
     return {"undone": ok}
 
 
+# ============ AUDIO HEALTH ============
+
+@registry.register(
+    "diagnose_audio",
+    "Diagnose why playback may be silent: checks the audio engine, master bus "
+    "routing to hardware, transport, and whether tracks have a working "
+    "instrument. Call this FIRST whenever the user says they can't hear "
+    "anything, then explain the most likely cause.",
+    Empty)
+def diagnose_audio(args, ctx):
+    return ctx.bridge.diagnose_audio()
+
+
+@registry.register(
+    "make_tracks_audible",
+    "Fix silent MIDI tracks so they produce sound on play. MIDI needs an "
+    "instrument; a MIDI track with no synth (or a bare a-fluidsynth that has "
+    "no soundfont loaded) is silent. This adds or replaces the synth with the "
+    "built-in audible one. Use when the user generated notes but hears nothing.",
+    Empty)
+def make_tracks_audible(args, ctx):
+    return ctx.bridge.fix_silent_instruments()
+
+
 # ============ MUSIC INTELLIGENCE (deterministic theory) ============
 
 class ProgressionArgs(BaseModel):
@@ -275,7 +335,7 @@ def insert_drum_pattern(args, ctx):
     notes = [MidiNote(pitch=n.midi_note,
                       start_beat=n.start_time / sec_per_beat,
                       length_beats=max(n.duration / sec_per_beat, 0.1),
-                      velocity=n.velocity)
+                      velocity=n.velocity, channel=9)
              for n in theory_notes]
     action_id = ctx.bridge.insert_midi_notes(args.track_id, notes,
                                              args.start_beat)

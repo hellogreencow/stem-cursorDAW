@@ -1,0 +1,2998 @@
+[
+ {
+  "action": "StepEditing/back",
+  "label": "Back",
+  "key": "Backspace",
+  "key_mac": "Backspace",
+  "group": ""
+ },
+ {
+  "action": "ProcessorMenu/backspace",
+  "label": "Backspace",
+  "key": "Backspace",
+  "key_mac": "Backspace",
+  "group": ""
+ },
+ {
+  "action": "Automation/begin-edit",
+  "label": "Begin edit",
+  "key": "Ctrl+Return",
+  "key_mac": "⌘Return",
+  "group": ""
+ },
+ {
+  "action": "Cues/clear-trigger-slot",
+  "label": "Clear trigger slot",
+  "key": "Delete",
+  "key_mac": "Delete",
+  "group": ""
+ },
+ {
+  "action": "Cues/clear-trigger-slot-alt",
+  "label": "Clear trigger slot alt",
+  "key": "Backspace",
+  "key_mac": "Backspace",
+  "group": ""
+ },
+ {
+  "action": "Automation/create-point",
+  "label": "Create point",
+  "key": "Return",
+  "key_mac": "Return",
+  "group": ""
+ },
+ {
+  "action": "Automation/create-point-with-guards",
+  "label": "Create point with guards",
+  "key": "Alt+Return",
+  "key_mac": "⌃Return",
+  "group": ""
+ },
+ {
+  "action": "ProcessorMenu/delete",
+  "label": "Delete",
+  "key": "Delete",
+  "key_mac": "Delete",
+  "group": ""
+ },
+ {
+  "action": "Automation/end-edit",
+  "label": "End edit",
+  "key": "Escape",
+  "key_mac": "Escape",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/insert-a",
+  "label": "Insert a",
+  "key": "H",
+  "key_mac": "H",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/insert-asharp",
+  "label": "Insert asharp",
+  "key": "U",
+  "key_mac": "U",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/insert-b",
+  "label": "Insert b",
+  "key": "J",
+  "key_mac": "J",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/insert-c",
+  "label": "Insert c",
+  "key": "A",
+  "key_mac": "A",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/insert-csharp",
+  "label": "Insert csharp",
+  "key": "W",
+  "key_mac": "W",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/insert-d",
+  "label": "Insert d",
+  "key": "S",
+  "key_mac": "S",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/insert-dsharp",
+  "label": "Insert dsharp",
+  "key": "E",
+  "key_mac": "E",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/insert-e",
+  "label": "Insert e",
+  "key": "D",
+  "key_mac": "D",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/insert-f",
+  "label": "Insert f",
+  "key": "F",
+  "key_mac": "F",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/insert-fsharp",
+  "label": "Insert fsharp",
+  "key": "T",
+  "key_mac": "T",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/insert-g",
+  "label": "Insert g",
+  "key": "G",
+  "key_mac": "G",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/insert-gsharp",
+  "label": "Insert gsharp",
+  "key": "Y",
+  "key_mac": "Y",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/insert-rest",
+  "label": "Insert rest",
+  "key": "Tab",
+  "key_mac": "Tab",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/insert-snap-rest",
+  "label": "Insert snap rest",
+  "key": "Ctrl+Tab",
+  "key_mac": "⌘Tab",
+  "group": ""
+ },
+ {
+  "action": "Automation/lower-points",
+  "label": "Lower points",
+  "key": "↓",
+  "key_mac": "↓",
+  "group": ""
+ },
+ {
+  "action": "Monitor/monitor-cut-0",
+  "label": "Monitor cut 0",
+  "key": "L",
+  "key_mac": "L",
+  "group": ""
+ },
+ {
+  "action": "Monitor/monitor-cut-1",
+  "label": "Monitor cut 1",
+  "key": "R",
+  "key_mac": "R",
+  "group": ""
+ },
+ {
+  "action": "Monitor/monitor-dim-0",
+  "label": "Monitor dim 0",
+  "key": "Alt+L",
+  "key_mac": "⌃L",
+  "group": ""
+ },
+ {
+  "action": "Monitor/monitor-dim-1",
+  "label": "Monitor dim 1",
+  "key": "Alt+R",
+  "key_mac": "⌃R",
+  "group": ""
+ },
+ {
+  "action": "Monitor/monitor-invert-0",
+  "label": "Monitor invert 0",
+  "key": "Shift+L",
+  "key_mac": "⇧L",
+  "group": ""
+ },
+ {
+  "action": "Monitor/monitor-invert-1",
+  "label": "Monitor invert 1",
+  "key": "Shift+R",
+  "key_mac": "⇧R",
+  "group": ""
+ },
+ {
+  "action": "Monitor/monitor-solo-0",
+  "label": "Monitor solo 0",
+  "key": "Ctrl+L",
+  "key_mac": "⌘L",
+  "group": ""
+ },
+ {
+  "action": "Monitor/monitor-solo-1",
+  "label": "Monitor solo 1",
+  "key": "Ctrl+R",
+  "key_mac": "⌘R",
+  "group": ""
+ },
+ {
+  "action": "Automation/move-points-earlier",
+  "label": "Move points earlier",
+  "key": "←",
+  "key_mac": "←",
+  "group": ""
+ },
+ {
+  "action": "Automation/move-points-later",
+  "label": "Move points later",
+  "key": "→",
+  "key_mac": "→",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/next-note-length",
+  "label": "Next note length",
+  "key": "Ctrl+↑",
+  "key_mac": "⌘↑",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/next-note-velocity",
+  "label": "Next note velocity",
+  "key": "↑",
+  "key_mac": "↑",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/no-dotted",
+  "label": "No dotted",
+  "key": "Ctrl+.",
+  "key_mac": "⌘.",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/note-length-eighth",
+  "label": "Note length eighth",
+  "key": "F5",
+  "key_mac": "F5",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/note-length-half",
+  "label": "Note length half",
+  "key": "F2",
+  "key_mac": "F2",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/note-length-quarter",
+  "label": "Note length quarter",
+  "key": "F4",
+  "key_mac": "F4",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/note-length-sixteenth",
+  "label": "Note length sixteenth",
+  "key": "F6",
+  "key_mac": "F6",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/note-length-sixtyfourth",
+  "label": "Note length sixtyfourth",
+  "key": "F8",
+  "key_mac": "F8",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/note-length-third",
+  "label": "Note length third",
+  "key": "F3",
+  "key_mac": "F3",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/note-length-thirtysecond",
+  "label": "Note length thirtysecond",
+  "key": "F7",
+  "key_mac": "F7",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/note-length-whole",
+  "label": "Note length whole",
+  "key": "F1",
+  "key_mac": "F1",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/note-velocity-f",
+  "label": "Note velocity f",
+  "key": "N",
+  "key_mac": "N",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/note-velocity-ff",
+  "label": "Note velocity ff",
+  "key": "M",
+  "key_mac": "M",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/note-velocity-fff",
+  "label": "Note velocity fff",
+  "key": ",",
+  "key_mac": ",",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/note-velocity-mf",
+  "label": "Note velocity mf",
+  "key": "B",
+  "key_mac": "B",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/note-velocity-mp",
+  "label": "Note velocity mp",
+  "key": "V",
+  "key_mac": "V",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/note-velocity-p",
+  "label": "Note velocity p",
+  "key": "C",
+  "key_mac": "C",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/note-velocity-pp",
+  "label": "Note velocity pp",
+  "key": "X",
+  "key_mac": "X",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/note-velocity-ppp",
+  "label": "Note velocity ppp",
+  "key": "Z",
+  "key_mac": "Z",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/octave-0",
+  "label": "Octave 0",
+  "key": "`",
+  "key_mac": "`",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/octave-1",
+  "label": "Octave 1",
+  "key": "1",
+  "key_mac": "1",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/octave-10",
+  "label": "Octave 10",
+  "key": "0",
+  "key_mac": "0",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/octave-2",
+  "label": "Octave 2",
+  "key": "2",
+  "key_mac": "2",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/octave-3",
+  "label": "Octave 3",
+  "key": "3",
+  "key_mac": "3",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/octave-4",
+  "label": "Octave 4",
+  "key": "4",
+  "key_mac": "4",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/octave-5",
+  "label": "Octave 5",
+  "key": "5",
+  "key_mac": "5",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/octave-6",
+  "label": "Octave 6",
+  "key": "6",
+  "key_mac": "6",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/octave-7",
+  "label": "Octave 7",
+  "key": "7",
+  "key_mac": "7",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/octave-8",
+  "label": "Octave 8",
+  "key": "8",
+  "key_mac": "8",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/octave-9",
+  "label": "Octave 9",
+  "key": "9",
+  "key_mac": "9",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/prev-note-length",
+  "label": "Prev note length",
+  "key": "Ctrl+↓",
+  "key_mac": "⌘↓",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/prev-note-velocity",
+  "label": "Prev note velocity",
+  "key": "↓",
+  "key_mac": "↓",
+  "group": ""
+ },
+ {
+  "action": "Automation/raise-points",
+  "label": "Raise points",
+  "key": "↑",
+  "key_mac": "↑",
+  "group": ""
+ },
+ {
+  "action": "RegionFxMenu/rfx-backspace",
+  "label": "Rfx backspace",
+  "key": "Backspace",
+  "key_mac": "Backspace",
+  "group": ""
+ },
+ {
+  "action": "RegionFxMenu/rfx-delete",
+  "label": "Rfx delete",
+  "key": "Delete",
+  "key_mac": "Delete",
+  "group": ""
+ },
+ {
+  "action": "Solo/solo-use-afl",
+  "label": "Solo use afl",
+  "key": "A",
+  "key_mac": "A",
+  "group": ""
+ },
+ {
+  "action": "Solo/solo-use-in-place",
+  "label": "Solo use in place",
+  "key": "I",
+  "key_mac": "I",
+  "group": ""
+ },
+ {
+  "action": "Solo/solo-use-pfl",
+  "label": "Solo use pfl",
+  "key": "P",
+  "key_mac": "P",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/toggle-chord",
+  "label": "Toggle chord",
+  "key": "Shift+bar",
+  "key_mac": "⇧bar",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/toggle-dotted",
+  "label": "Toggle dotted",
+  "key": ".",
+  "key_mac": ".",
+  "group": ""
+ },
+ {
+  "action": "Solo/toggle-exclusive-solo",
+  "label": "Toggle exclusive solo",
+  "key": "E",
+  "key_mac": "E",
+  "group": ""
+ },
+ {
+  "action": "Monitor/toggle-monitor-processor-box",
+  "label": "Toggle monitor processor box",
+  "key": "B",
+  "key_mac": "B",
+  "group": ""
+ },
+ {
+  "action": "Solo/toggle-mute-overrides-solo",
+  "label": "Toggle mute overrides solo",
+  "key": "Shift+O",
+  "key_mac": "ShiftO",
+  "group": ""
+ },
+ {
+  "action": "StepEditing/toggle-triplet",
+  "label": "Toggle triplet",
+  "key": "'",
+  "key_mac": "'",
+  "group": ""
+ },
+ {
+  "action": "Cues/trigger-cue-0",
+  "label": "Trigger cue 0",
+  "key": "F1",
+  "key_mac": "F1",
+  "group": ""
+ },
+ {
+  "action": "Cues/trigger-cue-1",
+  "label": "Trigger cue 1",
+  "key": "F2",
+  "key_mac": "F2",
+  "group": ""
+ },
+ {
+  "action": "Cues/trigger-cue-2",
+  "label": "Trigger cue 2",
+  "key": "F3",
+  "key_mac": "F3",
+  "group": ""
+ },
+ {
+  "action": "Cues/trigger-cue-3",
+  "label": "Trigger cue 3",
+  "key": "F4",
+  "key_mac": "F4",
+  "group": ""
+ },
+ {
+  "action": "Cues/trigger-cue-4",
+  "label": "Trigger cue 4",
+  "key": "F5",
+  "key_mac": "F5",
+  "group": ""
+ },
+ {
+  "action": "Cues/trigger-cue-5",
+  "label": "Trigger cue 5",
+  "key": "F6",
+  "key_mac": "F6",
+  "group": ""
+ },
+ {
+  "action": "Cues/trigger-cue-6",
+  "label": "Trigger cue 6",
+  "key": "F7",
+  "key_mac": "F7",
+  "group": ""
+ },
+ {
+  "action": "Cues/trigger-cue-7",
+  "label": "Trigger cue 7",
+  "key": "F8",
+  "key_mac": "F8",
+  "group": ""
+ },
+ {
+  "action": "Region/align-regions-end",
+  "label": "Align regions end",
+  "key": "Alt+A",
+  "key_mac": "⌃A",
+  "group": "Aligning with the Edit Point"
+ },
+ {
+  "action": "Region/align-regions-start",
+  "label": "Align regions start",
+  "key": "Ctrl+Alt+A",
+  "key_mac": "⌘⌃A",
+  "group": "Aligning with the Edit Point"
+ },
+ {
+  "action": "Region/align-regions-start-relative",
+  "label": "Align regions start relative",
+  "key": "Ctrl+Shift+A",
+  "key_mac": "⌘⇧A",
+  "group": "Aligning with the Edit Point"
+ },
+ {
+  "action": "Region/align-regions-sync",
+  "label": "Align regions sync",
+  "key": "Shift+A",
+  "key_mac": "⇧A",
+  "group": "Aligning with the Edit Point"
+ },
+ {
+  "action": "Region/align-regions-sync-relative",
+  "label": "Align regions sync relative",
+  "key": "X",
+  "key_mac": "X",
+  "group": "Aligning with the Edit Point"
+ },
+ {
+  "action": "Editor/add-range-marker-from-selection",
+  "label": "Add range marker from selection",
+  "key": "Alt+Shift+R",
+  "key_mac": "⌃⇧R",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/alternate-delete-section",
+  "label": "Alternate delete section",
+  "key": "Ctrl+Shift+Backspace",
+  "key_mac": "⌘⇧Backspace",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/copy-playlists-for-all-tracks",
+  "label": "Copy Playlist For All Tracks",
+  "key": "Ctrl+>Tertiary+colon",
+  "key_mac": "⌘>Tertiarycolon",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/copy-playlists-for-armed-tracks",
+  "label": "Copy Playlist For Rec-Armed Tracks",
+  "key": "Ctrl+>Secondary+>Tertiary+colon",
+  "key_mac": "⌘>Secondary>Tertiarycolon",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/copy-playlists-for-selected-tracks",
+  "label": "Copy Playlist For Selected Tracks",
+  "key": "Shift+colon",
+  "key_mac": "⇧colon",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/copy-paste-section",
+  "label": "Copy paste section",
+  "key": "Ctrl+Shift+C",
+  "key_mac": "⌘⇧C",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/cut-paste-section",
+  "label": "Cut paste section",
+  "key": "Ctrl+Shift+X",
+  "key_mac": "⌘⇧X",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/delete-section",
+  "label": "Delete section",
+  "key": "Ctrl+Shift+Delete",
+  "key_mac": "⌘⇧Delete",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/duplicate",
+  "label": "Duplicate",
+  "key": "Ctrl+D",
+  "key_mac": "⌘D",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/editor-consolidate",
+  "label": "Editor consolidate",
+  "key": "Alt+Shift+C",
+  "key_mac": "⌃⇧C",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/editor-crop",
+  "label": "Editor crop",
+  "key": "Ctrl+Alt+C",
+  "key_mac": "⌘⌃C",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/editor-fade-range",
+  "label": "Editor fade range",
+  "key": "/",
+  "key_mac": "/",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/find-and-display-stripable",
+  "label": "Find and display stripable",
+  "key": "Ctrl+Shift+L",
+  "key_mac": "⌘⇧L",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/group-selected-regions",
+  "label": "Group selected regions",
+  "key": "Ctrl+G",
+  "key_mac": "⌘G",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/layer-display-overlaid",
+  "label": "Layer display overlaid",
+  "key": "Shift+braceleft",
+  "key_mac": "⇧braceleft",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/layer-display-stacked",
+  "label": "Layer display stacked",
+  "key": "Shift+braceright",
+  "key_mac": "⇧braceright",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/multi-duplicate",
+  "label": "Multi duplicate",
+  "key": "Alt+D",
+  "key_mac": "⌃D",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/new-playlists-for-all-tracks",
+  "label": "New Playlist For All Tracks",
+  "key": "Ctrl+>Tertiary+quotedbl",
+  "key_mac": "⌘>Tertiaryquotedbl",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/new-playlists-for-armed-tracks",
+  "label": "New Playlist For Rec-Armed Tracks",
+  "key": "Ctrl+>Secondary+>Tertiary+quotedbl",
+  "key_mac": "⌘>Secondary>Tertiaryquotedbl",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/new-playlists-for-selected-tracks",
+  "label": "New Playlist For Selected Tracks",
+  "key": "Shift+quotedbl",
+  "key_mac": "⇧quotedbl",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/play-from-edit-point-and-return",
+  "label": "Play from edit point and return",
+  "key": "Ctrl+Shift+Space",
+  "key_mac": "⌘⇧Space",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Region/play-selected-regions",
+  "label": "Play selected regions",
+  "key": "H",
+  "key_mac": "H",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Region/raise-region-to-top",
+  "label": "Raise region to top",
+  "key": "Shift+bar",
+  "key_mac": "⇧bar",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/select-from-regions",
+  "label": "Select from regions",
+  "key": "Ctrl+Shift+R",
+  "key_mac": "⌘⇧R",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/set-playhead",
+  "label": "Set playhead",
+  "key": "P",
+  "key_mac": "P",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/show-editor-list",
+  "label": "Show Editor List",
+  "key": "Shift+L",
+  "key_mac": "⇧L",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/ToggleSummary",
+  "label": "Show Summary",
+  "key": "Shift+S",
+  "key_mac": "⇧S",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/show-plist-selector",
+  "label": "Show plist selector",
+  "key": "Shift+question",
+  "key_mac": "⇧question",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "EditorEditing/toggle-follow-playhead",
+  "label": "Toggle follow playhead",
+  "key": "Ctrl+F",
+  "key_mac": "⌘F",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "EditorEditing/toggle-stationary-playhead",
+  "label": "Toggle stationary playhead",
+  "key": "Shift+F",
+  "key_mac": "⇧F",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/ungroup-selected-regions",
+  "label": "Ungroup selected regions",
+  "key": "Ctrl+Shift+G",
+  "key_mac": "⌘⇧G",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/ToggleJadeo",
+  "label": "Video Monitor",
+  "key": "Alt+V",
+  "key_mac": "⌃V",
+  "group": "Basic Editing"
+ },
+ {
+  "action": "Editor/expand-tracks",
+  "label": "Expand tracks",
+  "key": "Alt+=",
+  "key_mac": "⌃=",
+  "group": "Changing What's Visible"
+ },
+ {
+  "action": "Editor/fit-selection",
+  "label": "Fit selection",
+  "key": "F",
+  "key_mac": "F",
+  "group": "Changing What's Visible"
+ },
+ {
+  "action": "Editor/move-selected-tracks-down",
+  "label": "Move selected tracks down",
+  "key": "Ctrl+↓",
+  "key_mac": "⌘↓",
+  "group": "Changing What's Visible"
+ },
+ {
+  "action": "Editor/move-selected-tracks-up",
+  "label": "Move selected tracks up",
+  "key": "Ctrl+↑",
+  "key_mac": "⌘↑",
+  "group": "Changing What's Visible"
+ },
+ {
+  "action": "Editor/scroll-tracks-down",
+  "label": "Scroll tracks down",
+  "key": "PageDown",
+  "key_mac": "PageDown",
+  "group": "Changing What's Visible"
+ },
+ {
+  "action": "Editor/scroll-tracks-up",
+  "label": "Scroll tracks up",
+  "key": "PageUp",
+  "key_mac": "PageUp",
+  "group": "Changing What's Visible"
+ },
+ {
+  "action": "Editor/show-editor-mixer",
+  "label": "Show Editor Mixer",
+  "key": "Shift+E",
+  "key_mac": "⇧E",
+  "group": "Changing What's Visible"
+ },
+ {
+  "action": "Editor/show-editor-props",
+  "label": "Show Editor Properties Box",
+  "key": "Shift+P",
+  "key_mac": "⇧P",
+  "group": "Changing What's Visible"
+ },
+ {
+  "action": "Editor/shrink-tracks",
+  "label": "Shrink tracks",
+  "key": "Alt+-",
+  "key_mac": "⌃-",
+  "group": "Changing What's Visible"
+ },
+ {
+  "action": "Editor/step-tracks-down",
+  "label": "Step tracks down",
+  "key": "↓",
+  "key_mac": "↓",
+  "group": "Changing What's Visible"
+ },
+ {
+  "action": "Editor/step-tracks-up",
+  "label": "Step tracks up",
+  "key": "↑",
+  "key_mac": "↑",
+  "group": "Changing What's Visible"
+ },
+ {
+  "action": "Editor/toggle-zoom",
+  "label": "Toggle zoom",
+  "key": "Shift+Z",
+  "key_mac": "⇧Z",
+  "group": "Changing What's Visible"
+ },
+ {
+  "action": "Editor/zoom-to-session",
+  "label": "Zoom to session",
+  "key": "Ctrl+Shift+underscore",
+  "key_mac": "⌘⇧underscore",
+  "group": "Changing What's Visible"
+ },
+ {
+  "action": "Editor/set-tempo-from-edit-range",
+  "label": "Set Tempo from Edit Range = Bar",
+  "key": "0",
+  "key_mac": "0",
+  "group": "Defining Loop, Punch Range and Tempo Changes"
+ },
+ {
+  "action": "Editor/set-loop-from-edit-range",
+  "label": "Set loop from edit range",
+  "key": "]",
+  "key_mac": "]",
+  "group": "Defining Loop, Punch Range and Tempo Changes"
+ },
+ {
+  "action": "Editor/set-punch-from-edit-range",
+  "label": "Set punch from edit range",
+  "key": "[",
+  "key_mac": "[",
+  "group": "Defining Loop, Punch Range and Tempo Changes"
+ },
+ {
+  "action": "Region/set-tempo-from-region",
+  "label": "Set tempo from region",
+  "key": "9",
+  "key_mac": "9",
+  "group": "Defining Loop, Punch Range and Tempo Changes"
+ },
+ {
+  "action": "Editor/cycle-edit-point",
+  "label": "Change Edit Point",
+  "key": "2",
+  "key_mac": "2",
+  "group": "Editing with Edit Point"
+ },
+ {
+  "action": "Editor/cycle-edit-point-with-marker",
+  "label": "Change Edit Point Including Marker",
+  "key": "Ctrl+2",
+  "key_mac": "⌘2",
+  "group": "Editing with Edit Point"
+ },
+ {
+  "action": "Editor/cycle-edit-mode",
+  "label": "Cycle Edit Mode",
+  "key": "1",
+  "key_mac": "1",
+  "group": "Editing with Edit Point"
+ },
+ {
+  "action": "Editor/edit-cursor-to-next-region-sync",
+  "label": "Edit cursor to next region sync",
+  "key": ";",
+  "key_mac": ";",
+  "group": "Editing with Edit Point"
+ },
+ {
+  "action": "Editor/edit-cursor-to-previous-region-sync",
+  "label": "Edit cursor to previous region sync",
+  "key": "'",
+  "key_mac": "'",
+  "group": "Editing with Edit Point"
+ },
+ {
+  "action": "Region/insert-region-from-source-list",
+  "label": "Insert region from source list",
+  "key": "I",
+  "key_mac": "I",
+  "group": "Editing with Edit Point"
+ },
+ {
+  "action": "Region/trim-back",
+  "label": "Trim back",
+  "key": "K",
+  "key_mac": "K",
+  "group": "Editing with Edit Point"
+ },
+ {
+  "action": "Region/trim-front",
+  "label": "Trim front",
+  "key": "J",
+  "key_mac": "J",
+  "group": "Editing with Edit Point"
+ },
+ {
+  "action": "Editor/goto-visual-state-1",
+  "label": "Goto visual state 1",
+  "key": "F1",
+  "key_mac": "F1",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/goto-visual-state-10",
+  "label": "Goto visual state 10",
+  "key": "F10",
+  "key_mac": "F10",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/goto-visual-state-11",
+  "label": "Goto visual state 11",
+  "key": "F11",
+  "key_mac": "F11",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/goto-visual-state-12",
+  "label": "Goto visual state 12",
+  "key": "F12",
+  "key_mac": "F12",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/goto-visual-state-2",
+  "label": "Goto visual state 2",
+  "key": "F2",
+  "key_mac": "F2",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/goto-visual-state-3",
+  "label": "Goto visual state 3",
+  "key": "F3",
+  "key_mac": "F3",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/goto-visual-state-4",
+  "label": "Goto visual state 4",
+  "key": "F4",
+  "key_mac": "F4",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/goto-visual-state-5",
+  "label": "Goto visual state 5",
+  "key": "F5",
+  "key_mac": "F5",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/goto-visual-state-6",
+  "label": "Goto visual state 6",
+  "key": "F6",
+  "key_mac": "F6",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/goto-visual-state-7",
+  "label": "Goto visual state 7",
+  "key": "F7",
+  "key_mac": "F7",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/goto-visual-state-8",
+  "label": "Goto visual state 8",
+  "key": "F8",
+  "key_mac": "F8",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/goto-visual-state-9",
+  "label": "Goto visual state 9",
+  "key": "F9",
+  "key_mac": "F9",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/save-visual-state-1",
+  "label": "Save visual state 1",
+  "key": "Ctrl+F1",
+  "key_mac": "⌘F1",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/save-visual-state-10",
+  "label": "Save visual state 10",
+  "key": "Ctrl+F10",
+  "key_mac": "⌘F10",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/save-visual-state-11",
+  "label": "Save visual state 11",
+  "key": "Ctrl+F11",
+  "key_mac": "⌘F11",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/save-visual-state-12",
+  "label": "Save visual state 12",
+  "key": "Ctrl+F12",
+  "key_mac": "⌘F12",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/save-visual-state-2",
+  "label": "Save visual state 2",
+  "key": "Ctrl+F2",
+  "key_mac": "⌘F2",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/save-visual-state-3",
+  "label": "Save visual state 3",
+  "key": "Ctrl+F3",
+  "key_mac": "⌘F3",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/save-visual-state-4",
+  "label": "Save visual state 4",
+  "key": "Ctrl+F4",
+  "key_mac": "⌘F4",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/save-visual-state-5",
+  "label": "Save visual state 5",
+  "key": "Ctrl+F5",
+  "key_mac": "⌘F5",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/save-visual-state-6",
+  "label": "Save visual state 6",
+  "key": "Ctrl+F6",
+  "key_mac": "⌘F6",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/save-visual-state-7",
+  "label": "Save visual state 7",
+  "key": "Ctrl+F7",
+  "key_mac": "⌘F7",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/save-visual-state-8",
+  "label": "Save visual state 8",
+  "key": "Ctrl+F8",
+  "key_mac": "⌘F8",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Editor/save-visual-state-9",
+  "label": "Save visual state 9",
+  "key": "Ctrl+F9",
+  "key_mac": "⌘F9",
+  "group": "Editor Views"
+ },
+ {
+  "action": "Common/alt-finish-range",
+  "label": "Alt finish range",
+  "key": "Ctrl+KP_Up",
+  "key_mac": "⌘KP_Up",
+  "group": "Global Editing Operations"
+ },
+ {
+  "action": "Common/alt-start-range",
+  "label": "Alt start range",
+  "key": "Ctrl+KP_Down",
+  "key_mac": "⌘KP_Down",
+  "group": "Global Editing Operations"
+ },
+ {
+  "action": "Main/Escape",
+  "label": "Escape",
+  "key": "Escape",
+  "key_mac": "Escape",
+  "group": "Global Editing Operations"
+ },
+ {
+  "action": "Common/finish-loop-range",
+  "label": "Finish loop range",
+  "key": "Alt+.",
+  "key_mac": "⌃.",
+  "group": "Global Editing Operations"
+ },
+ {
+  "action": "Common/finish-punch-range",
+  "label": "Finish punch range",
+  "key": "Ctrl+.",
+  "key_mac": "⌘.",
+  "group": "Global Editing Operations"
+ },
+ {
+  "action": "Common/finish-range",
+  "label": "Finish range",
+  "key": ".",
+  "key_mac": ".",
+  "group": "Global Editing Operations"
+ },
+ {
+  "action": "Common/start-loop-range",
+  "label": "Start loop range",
+  "key": "Alt+,",
+  "key_mac": "⌃,",
+  "group": "Global Editing Operations"
+ },
+ {
+  "action": "Common/start-punch-range",
+  "label": "Start punch range",
+  "key": "Ctrl+,",
+  "key_mac": "⌘,",
+  "group": "Global Editing Operations"
+ },
+ {
+  "action": "Common/start-range",
+  "label": "Start range",
+  "key": ",",
+  "key_mac": ",",
+  "group": "Global Editing Operations"
+ },
+ {
+  "action": "MIDI/panic",
+  "label": "Panic",
+  "key": "Ctrl+`",
+  "key_mac": "⌘`",
+  "group": "Global MIDI commands"
+ },
+ {
+  "action": "Common/add-location-from-playhead",
+  "label": "Add location from playhead",
+  "key": "Tab",
+  "key_mac": "Tab",
+  "group": "Global Marker Operations"
+ },
+ {
+  "action": "Common/alternate-add-location-from-playhead",
+  "label": "Alternate add location from playhead",
+  "key": "Numpad Enter",
+  "key_mac": "Numpad Enter",
+  "group": "Global Marker Operations"
+ },
+ {
+  "action": "Common/alternate-jump-backward-to-mark",
+  "label": "Alternate jump backward to mark",
+  "key": "Ctrl+KP_Left",
+  "key_mac": "⌘KP_Left",
+  "group": "Global Marker Operations"
+ },
+ {
+  "action": "Common/alternate-jump-forward-to-mark",
+  "label": "Alternate jump forward to mark",
+  "key": "Ctrl+KP_Right",
+  "key_mac": "⌘KP_Right",
+  "group": "Global Marker Operations"
+ },
+ {
+  "action": "Common/alternate-remove-location-from-playhead",
+  "label": "Alternate remove location from playhead",
+  "key": "Ctrl+Numpad Enter",
+  "key_mac": "⌘Numpad Enter",
+  "group": "Global Marker Operations"
+ },
+ {
+  "action": "Common/jump-backward-to-mark",
+  "label": "Jump backward to mark",
+  "key": "Q",
+  "key_mac": "Q",
+  "group": "Global Marker Operations"
+ },
+ {
+  "action": "Common/jump-forward-to-mark",
+  "label": "Jump forward to mark",
+  "key": "W",
+  "key_mac": "W",
+  "group": "Global Marker Operations"
+ },
+ {
+  "action": "Common/remove-location-from-playhead",
+  "label": "Remove location from playhead",
+  "key": "Ctrl+nabla",
+  "key_mac": "⌘nabla",
+  "group": "Global Marker Operations"
+ },
+ {
+  "action": "Monitor Section/monitor-cut-all",
+  "label": "Monitor cut all",
+  "key": "Ctrl+M",
+  "key_mac": "⌘M",
+  "group": "Global Monitor Operations"
+ },
+ {
+  "action": "Monitor Section/monitor-dim-all",
+  "label": "Monitor dim all",
+  "key": "Ctrl+Shift+M",
+  "key_mac": "⌘⇧M",
+  "group": "Global Monitor Operations"
+ },
+ {
+  "action": "Monitor Section/monitor-mono",
+  "label": "Monitor mono",
+  "key": "Ctrl+Alt+M",
+  "key_mac": "⌘⌃M",
+  "group": "Global Monitor Operations"
+ },
+ {
+  "action": "Transport/alternate-numpad-decimal",
+  "label": "Alternate numpad decimal",
+  "key": "KP_Separator",
+  "key_mac": "KP_Separator",
+  "group": "Global NumPad Transport Functions"
+ },
+ {
+  "action": "Transport/numpad-0",
+  "label": "Numpad 0",
+  "key": "Numpad 0",
+  "key_mac": "Numpad 0",
+  "group": "Global NumPad Transport Functions"
+ },
+ {
+  "action": "Transport/numpad-1",
+  "label": "Numpad 1",
+  "key": "Numpad 1",
+  "key_mac": "Numpad 1",
+  "group": "Global NumPad Transport Functions"
+ },
+ {
+  "action": "Transport/numpad-2",
+  "label": "Numpad 2",
+  "key": "Numpad 2",
+  "key_mac": "Numpad 2",
+  "group": "Global NumPad Transport Functions"
+ },
+ {
+  "action": "Transport/numpad-3",
+  "label": "Numpad 3",
+  "key": "Numpad 3",
+  "key_mac": "Numpad 3",
+  "group": "Global NumPad Transport Functions"
+ },
+ {
+  "action": "Transport/numpad-4",
+  "label": "Numpad 4",
+  "key": "Numpad 4",
+  "key_mac": "Numpad 4",
+  "group": "Global NumPad Transport Functions"
+ },
+ {
+  "action": "Transport/numpad-5",
+  "label": "Numpad 5",
+  "key": "Numpad 5",
+  "key_mac": "Numpad 5",
+  "group": "Global NumPad Transport Functions"
+ },
+ {
+  "action": "Transport/numpad-6",
+  "label": "Numpad 6",
+  "key": "Numpad 6",
+  "key_mac": "Numpad 6",
+  "group": "Global NumPad Transport Functions"
+ },
+ {
+  "action": "Transport/numpad-7",
+  "label": "Numpad 7",
+  "key": "Numpad 7",
+  "key_mac": "Numpad 7",
+  "group": "Global NumPad Transport Functions"
+ },
+ {
+  "action": "Transport/numpad-8",
+  "label": "Numpad 8",
+  "key": "Numpad 8",
+  "key_mac": "Numpad 8",
+  "group": "Global NumPad Transport Functions"
+ },
+ {
+  "action": "Transport/numpad-9",
+  "label": "Numpad 9",
+  "key": "Numpad 9",
+  "key_mac": "Numpad 9",
+  "group": "Global NumPad Transport Functions"
+ },
+ {
+  "action": "Transport/numpad-decimal",
+  "label": "Numpad decimal",
+  "key": "KP_Decimal",
+  "key_mac": "KP_Decimal",
+  "group": "Global NumPad Transport Functions"
+ },
+ {
+  "action": "Transport/alternate-GotoStart",
+  "label": "Alternate GotoStart",
+  "key": "Return",
+  "key_mac": "Return",
+  "group": "Global Playhead Operations"
+ },
+ {
+  "action": "Transport/GotoEnd",
+  "label": "GotoEnd",
+  "key": "End",
+  "key_mac": "End",
+  "group": "Global Playhead Operations"
+ },
+ {
+  "action": "Transport/GotoStart",
+  "label": "GotoStart",
+  "key": "Home",
+  "key_mac": "Home",
+  "group": "Global Playhead Operations"
+ },
+ {
+  "action": "Common/nudge-playhead-backward",
+  "label": "Nudge playhead backward",
+  "key": "Alt+←",
+  "key_mac": "⌃←",
+  "group": "Global Playhead Operations"
+ },
+ {
+  "action": "Common/nudge-playhead-forward",
+  "label": "Nudge playhead forward",
+  "key": "Alt+→",
+  "key_mac": "⌃→",
+  "group": "Global Playhead Operations"
+ },
+ {
+  "action": "Common/playhead-backward-to-grid",
+  "label": "Playhead backward to grid",
+  "key": "←",
+  "key_mac": "←",
+  "group": "Global Playhead Operations"
+ },
+ {
+  "action": "Common/playhead-forward-to-grid",
+  "label": "Playhead forward to grid",
+  "key": "→",
+  "key_mac": "→",
+  "group": "Global Playhead Operations"
+ },
+ {
+  "action": "Common/addExistingAudioFiles",
+  "label": "AddExistingAudioFiles",
+  "key": "Ctrl+I",
+  "key_mac": "⌘I",
+  "group": "Global Session & File Handling"
+ },
+ {
+  "action": "Main/AddTrackBus",
+  "label": "AddTrackBus",
+  "key": "Ctrl+Shift+N",
+  "key_mac": "⌘⇧N",
+  "group": "Global Session & File Handling"
+ },
+ {
+  "action": "Main/ExportAudio",
+  "label": "ExportAudio",
+  "key": "Alt+E",
+  "key_mac": "⌃E",
+  "group": "Global Session & File Handling"
+ },
+ {
+  "action": "Main/New",
+  "label": "New",
+  "key": "Ctrl+N",
+  "key_mac": "⌘N",
+  "group": "Global Session & File Handling"
+ },
+ {
+  "action": "Main/Open",
+  "label": "Open",
+  "key": "Ctrl+O",
+  "key_mac": "⌘O",
+  "group": "Global Session & File Handling"
+ },
+ {
+  "action": "Main/QuickExport",
+  "label": "QuickExport",
+  "key": "Ctrl+E",
+  "key_mac": "⌘E",
+  "group": "Global Session & File Handling"
+ },
+ {
+  "action": "Common/Quit",
+  "label": "Quit",
+  "key": "Ctrl+Q",
+  "key_mac": "⌘Q",
+  "group": "Global Session & File Handling"
+ },
+ {
+  "action": "Main/Recent",
+  "label": "Recent",
+  "key": "Ctrl+Shift+O",
+  "key_mac": "⌘⇧O",
+  "group": "Global Session & File Handling"
+ },
+ {
+  "action": "Common/Save",
+  "label": "Save",
+  "key": "Ctrl+S",
+  "key_mac": "⌘S",
+  "group": "Global Session & File Handling"
+ },
+ {
+  "action": "Main/SnapshotStay",
+  "label": "SnapshotStay",
+  "key": "Ctrl+Shift+S",
+  "key_mac": "⌘⇧S",
+  "group": "Global Session & File Handling"
+ },
+ {
+  "action": "Main/StemExport",
+  "label": "StemExport",
+  "key": "Alt+Shift+E",
+  "key_mac": "⌃⇧E",
+  "group": "Global Session & File Handling"
+ },
+ {
+  "action": "Transport/Forward",
+  "label": "Forward",
+  "key": "Shift+→",
+  "key_mac": "⇧→",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Transport/Loop",
+  "label": "Loop",
+  "key": "L",
+  "key_mac": "L",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Common/nudge-next-backward",
+  "label": "Nudge next backward",
+  "key": "Ctrl+Numpad -",
+  "key_mac": "⌘Numpad -",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Common/nudge-next-forward",
+  "label": "Nudge next forward",
+  "key": "Ctrl+Numpad +",
+  "key_mac": "⌘Numpad +",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Transport/PlaySelection",
+  "label": "PlaySelection",
+  "key": "Alt+Space",
+  "key_mac": "⌃Space",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Transport/Record",
+  "label": "Record",
+  "key": "Shift+R",
+  "key_mac": "⇧R",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Transport/record-roll",
+  "label": "Record roll",
+  "key": "Shift+Space",
+  "key_mac": "⇧Space",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Transport/RecordCountIn",
+  "label": "RecordCountIn",
+  "key": "Shift+greater",
+  "key_mac": "⇧greater",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Transport/RecordPreroll",
+  "label": "RecordPreroll",
+  "key": "Shift+less",
+  "key_mac": "⇧less",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Transport/Rewind",
+  "label": "Rewind",
+  "key": "Shift+←",
+  "key_mac": "⇧←",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Transport/solo-selection",
+  "label": "Solo selection",
+  "key": "A",
+  "key_mac": "A",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Transport/SpacebarAction",
+  "label": "SpacebarAction",
+  "key": "Space",
+  "key_mac": "Space",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Transport/ToggleExternalSync",
+  "label": "ToggleExternalSync",
+  "key": "Alt+`",
+  "key_mac": "⌃`",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Transport/ToggleRollForgetCapture",
+  "label": "ToggleRollForgetCapture",
+  "key": "Ctrl+Space",
+  "key_mac": "⌘Space",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Transport/ToggleRollMaybe",
+  "label": "ToggleRollMaybe",
+  "key": "Ctrl+Alt+Space",
+  "key_mac": "⌘⌃Space",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Transport/TransitionToReverse",
+  "label": "TransitionToReverse",
+  "key": "Shift+↓",
+  "key_mac": "⇧↓",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Transport/TransitionToRoll",
+  "label": "TransitionToRoll",
+  "key": "Shift+↑",
+  "key_mac": "⇧↑",
+  "group": "Global Transport & Recording Control"
+ },
+ {
+  "action": "Transport/ToggleAutoPlay",
+  "label": "ToggleAutoPlay",
+  "key": "Ctrl+7",
+  "key_mac": "⌘7",
+  "group": "Global Transport Modes"
+ },
+ {
+  "action": "Transport/ToggleAutoReturn",
+  "label": "ToggleAutoReturn",
+  "key": "7",
+  "key_mac": "7",
+  "group": "Global Transport Modes"
+ },
+ {
+  "action": "Transport/ToggleClick",
+  "label": "ToggleClick",
+  "key": "`",
+  "key_mac": "`",
+  "group": "Global Transport Modes"
+ },
+ {
+  "action": "Transport/ToggleFollowEdits",
+  "label": "ToggleFollowEdits",
+  "key": "Ctrl+3",
+  "key_mac": "⌘3",
+  "group": "Global Transport Modes"
+ },
+ {
+  "action": "Transport/TogglePunch",
+  "label": "TogglePunch",
+  "key": "8",
+  "key_mac": "8",
+  "group": "Global Transport Modes"
+ },
+ {
+  "action": "Transport/focus-on-clock",
+  "label": "Focus on clock",
+  "key": "KP_Divide",
+  "key_mac": "KP_Divide",
+  "group": "Global Window Visibility"
+ },
+ {
+  "action": "Common/next-tab",
+  "label": "Next tab",
+  "key": "Ctrl+PageDown",
+  "key_mac": "⌘PageDown",
+  "group": "Global Window Visibility"
+ },
+ {
+  "action": "Common/previous-tab",
+  "label": "Previous tab",
+  "key": "Ctrl+PageUp",
+  "key_mac": "⌘PageUp",
+  "group": "Global Window Visibility"
+ },
+ {
+  "action": "Common/show-mixer",
+  "label": "Show mixer",
+  "key": "Alt+M",
+  "key_mac": "⌃M",
+  "group": "Global Window Visibility"
+ },
+ {
+  "action": "Common/show-recorder",
+  "label": "Show recorder",
+  "key": "Alt+R",
+  "key_mac": "⌃R",
+  "group": "Global Window Visibility"
+ },
+ {
+  "action": "Common/show-trigger",
+  "label": "Show trigger",
+  "key": "Alt+C",
+  "key_mac": "⌃C",
+  "group": "Global Window Visibility"
+ },
+ {
+  "action": "Window/toggle-audio-connection-manager",
+  "label": "Toggle audio connection manager",
+  "key": "Alt+Shift+A",
+  "key_mac": "⌃⇧A",
+  "group": "Global Window Visibility"
+ },
+ {
+  "action": "Window/toggle-locations",
+  "label": "Toggle locations",
+  "key": "Alt+L",
+  "key_mac": "⌃L",
+  "group": "Global Window Visibility"
+ },
+ {
+  "action": "Common/toggle-meterbridge",
+  "label": "Toggle meterbridge",
+  "key": "Alt+B",
+  "key_mac": "⌃B",
+  "group": "Global Window Visibility"
+ },
+ {
+  "action": "Window/toggle-midi-connection-manager",
+  "label": "Toggle midi connection manager",
+  "key": "Alt+Shift+M",
+  "key_mac": "⌃⇧M",
+  "group": "Global Window Visibility"
+ },
+ {
+  "action": "Window/toggle-rtawindow",
+  "label": "Toggle rtawindow",
+  "key": "Alt+Shift+S",
+  "key_mac": "⌃⇧S",
+  "group": "Global Window Visibility"
+ },
+ {
+  "action": "Window/toggle-session-options-editor",
+  "label": "Toggle session options editor",
+  "key": "Alt+O",
+  "key_mac": "⌃O",
+  "group": "Global Window Visibility"
+ },
+ {
+  "action": "Window/toggle-virtual-keyboard",
+  "label": "Toggle virtual keyboard",
+  "key": "Alt+K",
+  "key_mac": "⌃K",
+  "group": "Global Window Visibility"
+ },
+ {
+  "action": "Common/ToggleMaximalEditor",
+  "label": "ToggleMaximalEditor",
+  "key": "Ctrl+Alt+F",
+  "key_mac": "⌘⌃F",
+  "group": "Global Window Visibility"
+ },
+ {
+  "action": "Common/ToggleMaximalMixer",
+  "label": "ToggleMaximalMixer",
+  "key": "Ctrl+Shift+F",
+  "key_mac": "⌘⇧F",
+  "group": "Global Window Visibility"
+ },
+ {
+  "action": "Editing/cycle-snap-mode",
+  "label": "Cycle snap mode",
+  "key": "4",
+  "key_mac": "4",
+  "group": "Grid Settings + Editor Modes"
+ },
+ {
+  "action": "Editing/next-grid-choice",
+  "label": "Next grid choice",
+  "key": "6",
+  "key_mac": "6",
+  "group": "Grid Settings + Editor Modes"
+ },
+ {
+  "action": "Editing/prev-grid-choice",
+  "label": "Prev grid choice",
+  "key": "5",
+  "key_mac": "5",
+  "group": "Grid Settings + Editor Modes"
+ },
+ {
+  "action": "Editor/selected-marker-to-next-region-boundary",
+  "label": "Selected marker to next region boundary",
+  "key": "Ctrl+Shift+→",
+  "key_mac": "⌘⇧→",
+  "group": "Markers & Locations"
+ },
+ {
+  "action": "Editor/selected-marker-to-previous-region-boundary",
+  "label": "Selected marker to previous region boundary",
+  "key": "Ctrl+Shift+←",
+  "key_mac": "⌘⇧←",
+  "group": "Markers & Locations"
+ },
+ {
+  "action": "Mixer/recall-mixer-scene-1",
+  "label": "Recall mixer scene 1",
+  "key": "F1",
+  "key_mac": "F1",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/recall-mixer-scene-10",
+  "label": "Recall mixer scene 10",
+  "key": "F10",
+  "key_mac": "F10",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/recall-mixer-scene-11",
+  "label": "Recall mixer scene 11",
+  "key": "F11",
+  "key_mac": "F11",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/recall-mixer-scene-12",
+  "label": "Recall mixer scene 12",
+  "key": "F12",
+  "key_mac": "F12",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/recall-mixer-scene-2",
+  "label": "Recall mixer scene 2",
+  "key": "F2",
+  "key_mac": "F2",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/recall-mixer-scene-3",
+  "label": "Recall mixer scene 3",
+  "key": "F3",
+  "key_mac": "F3",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/recall-mixer-scene-4",
+  "label": "Recall mixer scene 4",
+  "key": "F4",
+  "key_mac": "F4",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/recall-mixer-scene-5",
+  "label": "Recall mixer scene 5",
+  "key": "F5",
+  "key_mac": "F5",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/recall-mixer-scene-6",
+  "label": "Recall mixer scene 6",
+  "key": "F6",
+  "key_mac": "F6",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/recall-mixer-scene-7",
+  "label": "Recall mixer scene 7",
+  "key": "F7",
+  "key_mac": "F7",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/recall-mixer-scene-8",
+  "label": "Recall mixer scene 8",
+  "key": "F8",
+  "key_mac": "F8",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/recall-mixer-scene-9",
+  "label": "Recall mixer scene 9",
+  "key": "F9",
+  "key_mac": "F9",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/store-mixer-scene-1",
+  "label": "Store mixer scene 1",
+  "key": "Ctrl+F1",
+  "key_mac": "⌘F1",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/store-mixer-scene-10",
+  "label": "Store mixer scene 10",
+  "key": "Ctrl+F10",
+  "key_mac": "⌘F10",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/store-mixer-scene-11",
+  "label": "Store mixer scene 11",
+  "key": "Ctrl+F11",
+  "key_mac": "⌘F11",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/store-mixer-scene-12",
+  "label": "Store mixer scene 12",
+  "key": "Ctrl+F12",
+  "key_mac": "⌘F12",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/store-mixer-scene-2",
+  "label": "Store mixer scene 2",
+  "key": "Ctrl+F2",
+  "key_mac": "⌘F2",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/store-mixer-scene-3",
+  "label": "Store mixer scene 3",
+  "key": "Ctrl+F3",
+  "key_mac": "⌘F3",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/store-mixer-scene-4",
+  "label": "Store mixer scene 4",
+  "key": "Ctrl+F4",
+  "key_mac": "⌘F4",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/store-mixer-scene-5",
+  "label": "Store mixer scene 5",
+  "key": "Ctrl+F5",
+  "key_mac": "⌘F5",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/store-mixer-scene-6",
+  "label": "Store mixer scene 6",
+  "key": "Ctrl+F6",
+  "key_mac": "⌘F6",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/store-mixer-scene-7",
+  "label": "Store mixer scene 7",
+  "key": "Ctrl+F7",
+  "key_mac": "⌘F7",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/store-mixer-scene-8",
+  "label": "Store mixer scene 8",
+  "key": "Ctrl+F8",
+  "key_mac": "⌘F8",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Mixer/store-mixer-scene-9",
+  "label": "Store mixer scene 9",
+  "key": "Ctrl+F9",
+  "key_mac": "⌘F9",
+  "group": "Mixer Scenes"
+ },
+ {
+  "action": "Editing/set-mouse-mode-content",
+  "label": "Set mouse mode content",
+  "key": "E",
+  "key_mac": "E",
+  "group": "Mouse Modes"
+ },
+ {
+  "action": "Editing/set-mouse-mode-cut",
+  "label": "Set mouse mode cut",
+  "key": "C",
+  "key_mac": "C",
+  "group": "Mouse Modes"
+ },
+ {
+  "action": "Editing/set-mouse-mode-draw",
+  "label": "Set mouse mode draw",
+  "key": "D",
+  "key_mac": "D",
+  "group": "Mouse Modes"
+ },
+ {
+  "action": "Editing/set-mouse-mode-grid",
+  "label": "Set mouse mode grid",
+  "key": "Y",
+  "key_mac": "Y",
+  "group": "Mouse Modes"
+ },
+ {
+  "action": "Editing/set-mouse-mode-object",
+  "label": "Set mouse mode object",
+  "key": "G",
+  "key_mac": "G",
+  "group": "Mouse Modes"
+ },
+ {
+  "action": "Editing/set-mouse-mode-range",
+  "label": "Set mouse mode range",
+  "key": "R",
+  "key_mac": "R",
+  "group": "Mouse Modes"
+ },
+ {
+  "action": "Editing/set-mouse-mode-timefx",
+  "label": "Set mouse mode timefx",
+  "key": "T",
+  "key_mac": "T",
+  "group": "Mouse Modes"
+ },
+ {
+  "action": "Editor/set-mouse-mode-object-range",
+  "label": "Smart Mode",
+  "key": "3",
+  "key_mac": "3",
+  "group": "Mouse Modes"
+ },
+ {
+  "action": "Editor/zoom-to-selection",
+  "label": "Zoom to selection",
+  "key": "Z",
+  "key_mac": "Z",
+  "group": "Mouse Modes"
+ },
+ {
+  "action": "Editor/playhead-to-next-region-boundary",
+  "label": "Playhead to next region boundary",
+  "key": "Alt+Shift+→",
+  "key_mac": "⌃⇧→",
+  "group": "Moving the Playhead in the Editor"
+ },
+ {
+  "action": "Editor/playhead-to-next-region-sync",
+  "label": "Playhead to next region sync",
+  "key": "Ctrl+Alt+→",
+  "key_mac": "⌘⌃→",
+  "group": "Moving the Playhead in the Editor"
+ },
+ {
+  "action": "Editor/playhead-to-previous-region-boundary",
+  "label": "Playhead to previous region boundary",
+  "key": "Alt+Shift+←",
+  "key_mac": "⌃⇧←",
+  "group": "Moving the Playhead in the Editor"
+ },
+ {
+  "action": "Editor/playhead-to-previous-region-sync",
+  "label": "Playhead to previous region sync",
+  "key": "Ctrl+Alt+←",
+  "key_mac": "⌘⌃←",
+  "group": "Moving the Playhead in the Editor"
+ },
+ {
+  "action": "Editor/tab-to-transient-backwards",
+  "label": "Tab to transient backwards",
+  "key": "Ctrl+←",
+  "key_mac": "⌘←",
+  "group": "Moving the Playhead in the Editor"
+ },
+ {
+  "action": "Editor/tab-to-transient-forwards",
+  "label": "Tab to transient forwards",
+  "key": "Ctrl+→",
+  "key_mac": "⌘→",
+  "group": "Moving the Playhead in the Editor"
+ },
+ {
+  "action": "Mixer/scroll-left",
+  "label": "Scroll left",
+  "key": "←",
+  "key_mac": "←",
+  "group": "Navigation operations"
+ },
+ {
+  "action": "Mixer/scroll-right",
+  "label": "Scroll right",
+  "key": "→",
+  "key_mac": "→",
+  "group": "Navigation operations"
+ },
+ {
+  "action": "Notes/add-select-next",
+  "label": "Add select next",
+  "key": "Shift+Tab",
+  "key_mac": "⇧Tab",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/add-select-previous",
+  "label": "Add select previous",
+  "key": "Ctrl+Shift+Tab",
+  "key_mac": "⌘⇧Tab",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/alt-add-select-next",
+  "label": "Alt add select next",
+  "key": "Shift+ISO_Left_Tab",
+  "key_mac": "⇧ISO_Left_Tab",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/alt-add-select-previous",
+  "label": "Alt add select previous",
+  "key": "Ctrl+Shift+ISO_Left_Tab",
+  "key_mac": "⌘⇧ISO_Left_Tab",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/clear-selection",
+  "label": "Clear selection",
+  "key": "Escape",
+  "key_mac": "Escape",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/decrease-velocity",
+  "label": "Decrease velocity",
+  "key": "Ctrl+↓",
+  "key_mac": "⌘↓",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/decrease-velocity-fine",
+  "label": "Decrease velocity fine",
+  "key": "Ctrl+Alt+↓",
+  "key_mac": "⌘⌃↓",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/decrease-velocity-fine-smush",
+  "label": "Decrease velocity fine smush",
+  "key": "Ctrl+Alt+Shift+↓",
+  "key_mac": "⌘⌃⇧↓",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/decrease-velocity-smush",
+  "label": "Decrease velocity smush",
+  "key": "Ctrl+Shift+↓",
+  "key_mac": "⌘⇧↓",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/duplicate-selection",
+  "label": "Duplicate selection",
+  "key": "Shift+D",
+  "key_mac": "⇧D",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/edit-channels",
+  "label": "Edit channels",
+  "key": "C",
+  "key_mac": "C",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/edit-velocities",
+  "label": "Edit velocities",
+  "key": "V",
+  "key_mac": "V",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/extend-selection",
+  "label": "Extend selection",
+  "key": "Shift+E",
+  "key_mac": "⇧E",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/increase-velocity",
+  "label": "Increase velocity",
+  "key": "Ctrl+↑",
+  "key_mac": "⌘↑",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/increase-velocity-fine",
+  "label": "Increase velocity fine",
+  "key": "Ctrl+Alt+↑",
+  "key_mac": "⌘⌃↑",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/increase-velocity-fine-smush",
+  "label": "Increase velocity fine smush",
+  "key": "Ctrl+Alt+Shift+↑",
+  "key_mac": "⌘⌃⇧↑",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/increase-velocity-smush",
+  "label": "Increase velocity smush",
+  "key": "Ctrl+Shift+↑",
+  "key_mac": "⌘⇧↑",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/invert-selection",
+  "label": "Invert selection",
+  "key": "Shift+I",
+  "key_mac": "⇧I",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/join-notes",
+  "label": "Join notes",
+  "key": "J",
+  "key_mac": "J",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/move-ends-earlier",
+  "label": "Move ends earlier",
+  "key": "Ctrl+.",
+  "key_mac": "⌘.",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/move-ends-earlier-fine",
+  "label": "Move ends earlier fine",
+  "key": "Ctrl+Alt+.",
+  "key_mac": "⌘⌃.",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/move-ends-later",
+  "label": "Move ends later",
+  "key": ".",
+  "key_mac": ".",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/move-ends-later-fine",
+  "label": "Move ends later fine",
+  "key": "Alt+.",
+  "key_mac": "⌃.",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/move-starts-earlier",
+  "label": "Move starts earlier",
+  "key": ",",
+  "key_mac": ",",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/move-starts-earlier-fine",
+  "label": "Move starts earlier fine",
+  "key": "Alt+,",
+  "key_mac": "⌃,",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/move-starts-later",
+  "label": "Move starts later",
+  "key": "Ctrl+,",
+  "key_mac": "⌘,",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/move-starts-later-fine",
+  "label": "Move starts later fine",
+  "key": "Ctrl+Alt+,",
+  "key_mac": "⌘⌃,",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/nudge-earlier",
+  "label": "Nudge earlier",
+  "key": "←",
+  "key_mac": "←",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/nudge-earlier-fine",
+  "label": "Nudge earlier fine",
+  "key": "Alt+←",
+  "key_mac": "⌃←",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/nudge-later",
+  "label": "Nudge later",
+  "key": "→",
+  "key_mac": "→",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/nudge-later-fine",
+  "label": "Nudge later fine",
+  "key": "Alt+→",
+  "key_mac": "⌃→",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/quantize-selected-notes",
+  "label": "Quantize selected notes",
+  "key": "Q",
+  "key_mac": "Q",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/select-next",
+  "label": "Select next",
+  "key": "Tab",
+  "key_mac": "Tab",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/select-previous",
+  "label": "Select previous",
+  "key": "Ctrl+Tab",
+  "key_mac": "⌘Tab",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/split-notes-grid",
+  "label": "Split notes grid",
+  "key": "Ctrl+E",
+  "key_mac": "⌘E",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/split-notes-less",
+  "label": "Split notes less",
+  "key": "Shift+S",
+  "key_mac": "⇧S",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/split-notes-more",
+  "label": "Split notes more",
+  "key": "S",
+  "key_mac": "S",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/transpose-down-octave",
+  "label": "Transpose down octave",
+  "key": "Alt+↓",
+  "key_mac": "⌃↓",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/transpose-down-octave-smush",
+  "label": "Transpose down octave smush",
+  "key": "Shift+↓",
+  "key_mac": "⇧↓",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/transpose-down-semitone",
+  "label": "Transpose down semitone",
+  "key": "↓",
+  "key_mac": "↓",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/transpose-down-semitone-smush",
+  "label": "Transpose down semitone smush",
+  "key": "Alt+Shift+↓",
+  "key_mac": "⌃⇧↓",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/transpose-up-octave",
+  "label": "Transpose up octave",
+  "key": "Alt+↑",
+  "key_mac": "⌃↑",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/transpose-up-octave-smush",
+  "label": "Transpose up octave smush",
+  "key": "Shift+↑",
+  "key_mac": "⇧↑",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/transpose-up-semitone",
+  "label": "Transpose up semitone",
+  "key": "↑",
+  "key_mac": "↑",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Notes/transpose-up-semitone-smush",
+  "label": "Transpose up semitone smush",
+  "key": "Alt+Shift+↑",
+  "key_mac": "⌃⇧↑",
+  "group": "Note Editing"
+ },
+ {
+  "action": "Mixer/decrement-gain",
+  "label": "Decrement gain",
+  "key": "↓",
+  "key_mac": "↓",
+  "group": "Operations on the selected strip(s)"
+ },
+ {
+  "action": "Mixer/increment-gain",
+  "label": "Increment gain",
+  "key": "↑",
+  "key_mac": "↑",
+  "group": "Operations on the selected strip(s)"
+ },
+ {
+  "action": "Mixer/mute",
+  "label": "Mute",
+  "key": "M",
+  "key_mac": "M",
+  "group": "Operations on the selected strip(s)"
+ },
+ {
+  "action": "Mixer/recenable",
+  "label": "Recenable",
+  "key": "R",
+  "key_mac": "R",
+  "group": "Operations on the selected strip(s)"
+ },
+ {
+  "action": "Mixer/solo",
+  "label": "Solo",
+  "key": "S",
+  "key_mac": "S",
+  "group": "Operations on the selected strip(s)"
+ },
+ {
+  "action": "Mixer/toggle-midi-input-active",
+  "label": "Toggle MIDI Input Active for Editor-Selected Tracks/Busses",
+  "key": "Alt+I",
+  "key_mac": "⌃I",
+  "group": "Operations on the selected strip(s)"
+ },
+ {
+  "action": "Mixer/toggle-disk-monitor",
+  "label": "Toggle disk monitor",
+  "key": "D",
+  "key_mac": "D",
+  "group": "Operations on the selected strip(s)"
+ },
+ {
+  "action": "Mixer/toggle-input-monitor",
+  "label": "Toggle input monitor",
+  "key": "I",
+  "key_mac": "I",
+  "group": "Operations on the selected strip(s)"
+ },
+ {
+  "action": "Mixer/unity-gain",
+  "label": "Unity gain",
+  "key": "0",
+  "key_mac": "0",
+  "group": "Operations on the selected strip(s)"
+ },
+ {
+  "action": "Mixer/ab-plugins",
+  "label": "Ab plugins",
+  "key": "/",
+  "key_mac": "/",
+  "group": "Processor operations on the selected strip(s)"
+ },
+ {
+  "action": "Mixer/copy-processors",
+  "label": "Copy processors",
+  "key": "Ctrl+C",
+  "key_mac": "⌘C",
+  "group": "Processor operations on the selected strip(s)"
+ },
+ {
+  "action": "Mixer/cut-processors",
+  "label": "Cut processors",
+  "key": "Ctrl+X",
+  "key_mac": "⌘X",
+  "group": "Processor operations on the selected strip(s)"
+ },
+ {
+  "action": "Mixer/delete-processors",
+  "label": "Delete processors",
+  "key": "Delete",
+  "key_mac": "Delete",
+  "group": "Processor operations on the selected strip(s)"
+ },
+ {
+  "action": "Mixer/delete-processors-alt",
+  "label": "Delete processors alt",
+  "key": "Backspace",
+  "key_mac": "Backspace",
+  "group": "Processor operations on the selected strip(s)"
+ },
+ {
+  "action": "Mixer/paste-processors",
+  "label": "Paste processors",
+  "key": "Ctrl+V",
+  "key_mac": "⌘V",
+  "group": "Processor operations on the selected strip(s)"
+ },
+ {
+  "action": "Mixer/select-all-processors",
+  "label": "Select all processors",
+  "key": "Ctrl+A",
+  "key_mac": "⌘A",
+  "group": "Processor operations on the selected strip(s)"
+ },
+ {
+  "action": "Recorder/alternate-rec-redo",
+  "label": "Alternate rec redo",
+  "key": "Ctrl+Y",
+  "key_mac": "⌘Y",
+  "group": "Recorder Page"
+ },
+ {
+  "action": "Recorder/arm-all",
+  "label": "Arm all",
+  "key": "Ctrl+R",
+  "key_mac": "⌘R",
+  "group": "Recorder Page"
+ },
+ {
+  "action": "Recorder/arm-none",
+  "label": "Arm none",
+  "key": "Ctrl+Shift+R",
+  "key_mac": "⌘⇧R",
+  "group": "Recorder Page"
+ },
+ {
+  "action": "Recorder/rec-redo",
+  "label": "Rec redo",
+  "key": "Ctrl+Shift+Z",
+  "key_mac": "⌘⇧Z",
+  "group": "Recorder Page"
+ },
+ {
+  "action": "Recorder/rec-undo",
+  "label": "Rec undo",
+  "key": "Ctrl+Z",
+  "key_mac": "⌘Z",
+  "group": "Recorder Page"
+ },
+ {
+  "action": "Region/add-region-cue-marker",
+  "label": "Add region cue marker",
+  "key": "M",
+  "key_mac": "M",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/boost-region-gain",
+  "label": "Boost region gain",
+  "key": "Alt+6",
+  "key_mac": "⌃6",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/cut-region-gain",
+  "label": "Cut region gain",
+  "key": "Alt+7",
+  "key_mac": "⌃7",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/export-region",
+  "label": "Export region",
+  "key": "Ctrl+Alt+E",
+  "key_mac": "⌘⌃E",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/fork-regions-from-unselected",
+  "label": "Fork regions from unselected",
+  "key": "Shift+U",
+  "key_mac": "⇧U",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/naturalize-region",
+  "label": "Naturalize region",
+  "key": "Alt+2",
+  "key_mac": "⌃2",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/normalize-region",
+  "label": "Normalize region",
+  "key": "Alt+3",
+  "key_mac": "⌃3",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/pitch-shift-region",
+  "label": "Pitch shift region",
+  "key": "Alt+8",
+  "key_mac": "⌃8",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/quantize-region",
+  "label": "Quantize region",
+  "key": "Alt+5",
+  "key_mac": "⌃5",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/rename-region",
+  "label": "Rename region",
+  "key": "Alt+9",
+  "key_mac": "⌃9",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/reverse-region",
+  "label": "Reverse region",
+  "key": "Alt+4",
+  "key_mac": "⌃4",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/set-fade-in-length",
+  "label": "Set fade in length",
+  "key": "Ctrl+/",
+  "key_mac": "⌘/",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/set-fade-out-length",
+  "label": "Set fade out length",
+  "key": "Ctrl+\\",
+  "key_mac": "⌘\\",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/set-region-sync-position",
+  "label": "Set region sync position",
+  "key": "V",
+  "key_mac": "V",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/show-rhythm-ferret",
+  "label": "Show rhythm ferret",
+  "key": "Alt+F",
+  "key_mac": "⌃F",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Editor/split-region",
+  "label": "Split region",
+  "key": "S",
+  "key_mac": "S",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/toggle-opaque-region",
+  "label": "Toggle opaque region",
+  "key": "Alt+0",
+  "key_mac": "⌃0",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/toggle-region-mute",
+  "label": "Toggle region mute",
+  "key": "Alt+1",
+  "key_mac": "⌃1",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/trim-to-next-region",
+  "label": "Trim to next region",
+  "key": "Ctrl+K",
+  "key_mac": "⌘K",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Region/trim-to-previous-region",
+  "label": "Trim to previous region",
+  "key": "Ctrl+J",
+  "key_mac": "⌘J",
+  "group": "Region Operations"
+ },
+ {
+  "action": "Common/invert-selection",
+  "label": "Invert selection",
+  "key": "Ctrl+Shift+I",
+  "key_mac": "⌘⇧I",
+  "group": "Selecting"
+ },
+ {
+  "action": "Editor/nudge-backward",
+  "label": "Nudge backward",
+  "key": "Numpad -",
+  "key_mac": "Numpad -",
+  "group": "Selecting"
+ },
+ {
+  "action": "Editor/nudge-forward",
+  "label": "Nudge forward",
+  "key": "Numpad +",
+  "key_mac": "Numpad +",
+  "group": "Selecting"
+ },
+ {
+  "action": "Editor/select-all-after-edit-cursor",
+  "label": "Select all after edit cursor",
+  "key": "Ctrl+Shift+E",
+  "key_mac": "⌘⇧E",
+  "group": "Selecting"
+ },
+ {
+  "action": "Editor/select-all-between-cursors",
+  "label": "Select all between cursors",
+  "key": "Ctrl+U",
+  "key_mac": "⌘U",
+  "group": "Selecting"
+ },
+ {
+  "action": "Editor/select-all-in-loop-range",
+  "label": "Select all in loop range",
+  "key": "Ctrl+L",
+  "key_mac": "⌘L",
+  "group": "Selecting"
+ },
+ {
+  "action": "Editor/select-all-in-punch-range",
+  "label": "Select all in punch range",
+  "key": "Shift+D",
+  "key_mac": "⇧D",
+  "group": "Selecting"
+ },
+ {
+  "action": "Editor/select-all-objects",
+  "label": "Select all objects",
+  "key": "Ctrl+A",
+  "key_mac": "⌘A",
+  "group": "Selecting"
+ },
+ {
+  "action": "Common/select-all-visible-lanes",
+  "label": "Select all visible lanes",
+  "key": "Ctrl+T",
+  "key_mac": "⌘T",
+  "group": "Selecting"
+ },
+ {
+  "action": "Editor/select-all-within-cursors",
+  "label": "Select all within cursors",
+  "key": "U",
+  "key_mac": "U",
+  "group": "Selecting"
+ },
+ {
+  "action": "Editor/select-next-route",
+  "label": "Select next route",
+  "key": "Alt+↓",
+  "key_mac": "⌃↓",
+  "group": "Selecting"
+ },
+ {
+  "action": "Editor/select-next-stripable",
+  "label": "Select next stripable",
+  "key": "Alt+Shift+↓",
+  "key_mac": "⌃⇧↓",
+  "group": "Selecting"
+ },
+ {
+  "action": "Editor/select-prev-route",
+  "label": "Select prev route",
+  "key": "Alt+↑",
+  "key_mac": "⌃↑",
+  "group": "Selecting"
+ },
+ {
+  "action": "Editor/select-prev-stripable",
+  "label": "Select prev stripable",
+  "key": "Alt+Shift+↑",
+  "key_mac": "⌃⇧↑",
+  "group": "Selecting"
+ },
+ {
+  "action": "Editing/alternate-alternate-redo",
+  "label": "Alternate alternate redo",
+  "key": "Ctrl+Shift+Z",
+  "key_mac": "⌘⇧Z",
+  "group": "Shared Editing"
+ },
+ {
+  "action": "Editing/alternate-editor-delete",
+  "label": "Alternate editor delete",
+  "key": "Backspace",
+  "key_mac": "Backspace",
+  "group": "Shared Editing"
+ },
+ {
+  "action": "Editing/alternate-redo",
+  "label": "Alternate redo",
+  "key": "Ctrl+Y",
+  "key_mac": "⌘Y",
+  "group": "Shared Editing"
+ },
+ {
+  "action": "Editing/editor-copy",
+  "label": "Editor copy",
+  "key": "Ctrl+C",
+  "key_mac": "⌘C",
+  "group": "Shared Editing"
+ },
+ {
+  "action": "Editing/editor-cut",
+  "label": "Editor cut",
+  "key": "Ctrl+X",
+  "key_mac": "⌘X",
+  "group": "Shared Editing"
+ },
+ {
+  "action": "Editing/editor-delete",
+  "label": "Editor delete",
+  "key": "Delete",
+  "key_mac": "Delete",
+  "group": "Shared Editing"
+ },
+ {
+  "action": "Editing/editor-paste",
+  "label": "Editor paste",
+  "key": "Ctrl+V",
+  "key_mac": "⌘V",
+  "group": "Shared Editing"
+ },
+ {
+  "action": "Editing/redo",
+  "label": "Redo",
+  "key": "Ctrl+R",
+  "key_mac": "⌘R",
+  "group": "Shared Editing"
+ },
+ {
+  "action": "Editing/temporal-zoom-in",
+  "label": "Temporal zoom in",
+  "key": "=",
+  "key_mac": "=",
+  "group": "Shared Editing"
+ },
+ {
+  "action": "Editing/temporal-zoom-out",
+  "label": "Temporal zoom out",
+  "key": "-",
+  "key_mac": "-",
+  "group": "Shared Editing"
+ },
+ {
+  "action": "Editing/undo",
+  "label": "Undo",
+  "key": "Ctrl+Z",
+  "key_mac": "⌘Z",
+  "group": "Shared Editing"
+ },
+ {
+  "action": "Editor/toggle-midi-input-active",
+  "label": "Toggle MIDI Input Active for Editor-Selected Tracks/Busses",
+  "key": "Alt+I",
+  "key_mac": "⌃I",
+  "group": "Track Actions from the Editor"
+ },
+ {
+  "action": "Editor/track-record-enable-toggle",
+  "label": "Track record enable toggle",
+  "key": "Shift+B",
+  "key_mac": "⇧B",
+  "group": "Track Actions from the Editor"
+ },
+ {
+  "action": "Editor/track-solo-toggle",
+  "label": "Track solo toggle",
+  "key": "Alt+S",
+  "key_mac": "⌃S",
+  "group": "Track Actions from the Editor"
+ },
+ {
+  "action": "Mixer/select-next-stripable",
+  "label": "Select next stripable",
+  "key": "Alt+↓",
+  "key_mac": "⌃↓",
+  "group": "Window Visibility"
+ },
+ {
+  "action": "Mixer/select-prev-stripable",
+  "label": "Select prev stripable",
+  "key": "Alt+↑",
+  "key_mac": "⌃↑",
+  "group": "Window Visibility"
+ },
+ {
+  "action": "Common/show-editor",
+  "label": "Show editor",
+  "key": "Alt+M",
+  "key_mac": "⌃M",
+  "group": "Window Visibility"
+ },
+ {
+  "action": "Mixer/ToggleMixerList",
+  "label": "ToggleMixerList",
+  "key": "Shift+L",
+  "key_mac": "⇧L",
+  "group": "Window Visibility"
+ },
+ {
+  "action": "Mixer/ToggleMonitorSection",
+  "label": "ToggleMonitorSection",
+  "key": "Shift+M",
+  "key_mac": "⇧M",
+  "group": "Window Visibility"
+ },
+ {
+  "action": "Cues/ToggleTriggerList",
+  "label": "ToggleTriggerList",
+  "key": "Shift+L",
+  "key_mac": "⇧L",
+  "group": "Window Visibility"
+ },
+ {
+  "action": "Cues/ToggleTriggerProps",
+  "label": "ToggleTriggerProps",
+  "key": "Shift+P",
+  "key_mac": "⇧P",
+  "group": "Window Visibility"
+ },
+ {
+  "action": "Mixer/ToggleVCAPane",
+  "label": "ToggleVCAPane",
+  "key": "Shift+V",
+  "key_mac": "⇧V",
+  "group": "Window Visibility"
+ }
+]

@@ -6,11 +6,11 @@
 <title>Stem</title>
 <style>
 :root{
-  --bg:#08080a; --bg2:#0d0d10; --panel:rgba(255,255,255,.035);
-  --panel-strong:rgba(255,255,255,.06); --line:rgba(255,255,255,.07);
-  --line2:rgba(255,255,255,.12);
+  --bg:#0b0c0f; --bg2:#111318; --panel:rgba(255,255,255,.04);
+  --panel-strong:rgba(255,255,255,.065); --line:rgba(255,255,255,.08);
+  --line2:rgba(255,255,255,.14);
   --tx:#f5f5f7; --tx2:#a1a1a6; --tx3:#6e6e73;
-  --acc1:#c084fc; --acc2:#7aa2ff; --acc-soft:rgba(160,140,255,.14);
+  --acc1:#4cc38a; --acc2:#6ea8fe; --acc-soft:rgba(76,195,138,.13);
   --ok:#32d74b; --warn:#ff9f0a; --err:#ff453a;
   --mono:'SF Mono',ui-monospace,'JetBrains Mono',Menlo,monospace;
   --sans:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',system-ui,sans-serif;
@@ -19,10 +19,8 @@
 html,body{height:100%}
 body{
   font-family:var(--sans); color:var(--tx); background:var(--bg);
-  background-image:radial-gradient(1200px 600px at 80% -10%,rgba(120,90,255,.10),transparent 60%),
-                   radial-gradient(900px 500px at -10% 110%,rgba(80,150,255,.08),transparent 55%);
   -webkit-font-smoothing:antialiased; overflow:hidden;
-  letter-spacing:-.01em;
+  letter-spacing:0;
 }
 .app{display:grid; grid-template-columns:268px 1fr; height:100vh}
 
@@ -34,15 +32,14 @@ body{
   backdrop-filter:blur(20px);
 }
 .brand{display:flex; align-items:center; gap:11px; padding:2px 4px}
-.orb{width:30px;height:30px;border-radius:9px;position:relative;
-  background:linear-gradient(135deg,var(--acc1),var(--acc2));
-  box-shadow:0 4px 18px rgba(150,120,255,.45),inset 0 1px 1px rgba(255,255,255,.4)}
-.orb::after{content:'';position:absolute;inset:6px;border-radius:5px;
-  background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.85),transparent 60%)}
-.brand h1{font-size:18px;font-weight:600;letter-spacing:-.03em}
+.orb{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;
+  background:var(--panel-strong);border:1px solid var(--line2);color:var(--acc1);
+  font-size:14px;font-weight:700}
+.orb::before{content:'S'}
+.brand h1{font-size:18px;font-weight:600;letter-spacing:0}
 .brand .sub{font-size:11px;color:var(--tx3);font-weight:500;margin-top:-3px}
 
-.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:13px 14px}
 .card .hd{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--tx3);
   font-weight:600;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
 .dot{width:7px;height:7px;border-radius:50%;background:var(--tx3);box-shadow:0 0 0 0 rgba(50,215,75,.5)}
@@ -53,7 +50,7 @@ body{
 
 .tracks{display:flex;flex-direction:column;gap:7px;margin-top:4px;max-height:38vh;overflow:auto}
 .trk{display:flex;align-items:center;gap:9px;font-size:12.5px}
-.trk .ic{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;
+.trk .ic{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;
   background:var(--acc-soft);color:var(--acc1);font-size:11px;flex:none}
 .trk .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}
 .trk .ct{color:var(--tx3);font-size:11px;font-variant-numeric:tabular-nums}
@@ -75,8 +72,8 @@ body{
 .msg{display:flex;gap:13px;margin-bottom:26px;animation:rise .45s cubic-bezier(.2,.7,.2,1)}
 @keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .av{width:28px;height:28px;border-radius:8px;flex:none;margin-top:1px}
-.av.stem{background:linear-gradient(135deg,var(--acc1),var(--acc2));box-shadow:0 3px 12px rgba(150,120,255,.4),inset 0 1px 1px rgba(255,255,255,.4);position:relative}
-.av.stem::after{content:'';position:absolute;inset:5px;border-radius:4px;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.8),transparent 60%)}
+.av.stem{background:var(--panel-strong);border:1px solid var(--line2);display:grid;place-items:center;color:var(--acc1);font-size:13px;font-weight:700}
+.av.stem::after{content:'S'}
 .av.you{background:var(--panel-strong);border:1px solid var(--line2);display:grid;place-items:center;color:var(--tx2);font-size:13px;font-weight:600}
 .body{flex:1;min-width:0}
 .who{font-size:12.5px;font-weight:600;color:var(--tx2);margin-bottom:5px}
@@ -88,7 +85,7 @@ body{
 /* tool activity */
 .acts{display:flex;flex-direction:column;gap:6px;margin:10px 0 2px}
 .act{display:flex;align-items:center;gap:9px;font-size:12.5px;background:var(--panel);
-  border:1px solid var(--line);border-radius:10px;padding:7px 11px;animation:rise .3s ease}
+  border:1px solid var(--line);border-radius:8px;padding:7px 11px;animation:rise .3s ease}
 .act .st{width:15px;height:15px;border-radius:50%;flex:none;display:grid;place-items:center;font-size:9px}
 .act .st.run{border:1.6px solid var(--acc2);border-top-color:transparent;animation:spin .7s linear infinite}
 .act .st.ok{background:rgba(50,215,75,.15);color:var(--ok)}
@@ -105,21 +102,22 @@ body{
 
 /* composer */
 .composer{padding:14px 0 22px;background:linear-gradient(180deg,transparent,var(--bg) 38%)}
-.cwrap{max-width:720px;margin:0 auto;padding:0 24px}
-.chips{display:flex;gap:7px;margin-bottom:11px;flex-wrap:wrap}
+.cwrap{max-width:720px;margin:0 auto;padding:0 24px;min-width:0}
+.chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:11px}
 .chip{font-size:12px;color:var(--tx2);background:var(--panel);border:1px solid var(--line);
-  padding:6px 12px;border-radius:18px;cursor:pointer;transition:.18s;font-weight:500;white-space:nowrap}
+  padding:6px 12px;border-radius:8px;cursor:pointer;transition:.18s;font-weight:500;
+  min-width:0;overflow-wrap:anywhere;text-align:left}
 .chip:hover{background:var(--panel-strong);color:var(--tx);border-color:var(--line2);transform:translateY(-1px)}
 .inputbar{display:flex;align-items:flex-end;gap:10px;background:var(--panel);
-  border:1px solid var(--line2);border-radius:18px;padding:9px 9px 9px 16px;transition:.2s;
+  border:1px solid var(--line2);border-radius:8px;padding:9px 9px 9px 16px;transition:.2s;
   box-shadow:0 8px 30px rgba(0,0,0,.35)}
-.inputbar:focus-within{border-color:rgba(160,140,255,.55);box-shadow:0 8px 34px rgba(120,90,255,.18),0 0 0 4px rgba(150,120,255,.10)}
+.inputbar:focus-within{border-color:rgba(76,195,138,.55);box-shadow:0 8px 34px rgba(0,0,0,.24),0 0 0 4px rgba(76,195,138,.10)}
 .inputbar textarea{flex:1;background:transparent;border:none;color:var(--tx);font-family:var(--sans);
   font-size:14.5px;resize:none;outline:none;line-height:1.5;max-height:140px;padding:6px 0}
 .inputbar textarea::placeholder{color:var(--tx3)}
-.send{width:36px;height:36px;border-radius:12px;border:none;flex:none;cursor:pointer;
-  background:linear-gradient(135deg,var(--acc1),var(--acc2));color:#fff;display:grid;place-items:center;
-  transition:.18s;box-shadow:0 4px 14px rgba(140,110,255,.4)}
+.send{width:36px;height:36px;border-radius:8px;border:none;flex:none;cursor:pointer;
+  background:var(--acc1);color:#08100c;display:grid;place-items:center;
+  transition:.18s;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .send:hover{filter:brightness(1.08);transform:translateY(-1px)}
 .send:disabled{opacity:.4;cursor:default;filter:none;transform:none;box-shadow:none}
 .send svg{width:17px;height:17px}
@@ -127,6 +125,19 @@ body{
 
 ::-webkit-scrollbar{width:9px}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.08);border-radius:9px;border:2px solid transparent;background-clip:content-box}
 ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.16);background-clip:content-box}
+
+@media (max-width:760px){
+  .app{grid-template-columns:1fr}
+  .side{display:none}
+  .topbar{height:48px;padding:0 14px}
+  .topbar .pill{display:none}
+  .thread{padding:18px 0 10px}
+  .wrap,.cwrap{padding:0 14px}
+  .msg{gap:10px;margin-bottom:22px}
+  .chips{grid-template-columns:1fr;max-height:132px;overflow:auto;padding-right:2px}
+  .composer{padding:12px 0 14px}
+  .inputbar{padding-left:13px}
+}
 </style>
 </head>
 <body>
@@ -134,13 +145,13 @@ body{
   <aside class="side">
     <div class="brand">
       <div class="orb"></div>
-      <div><h1>Stem</h1><div class="sub">AI music producer</div></div>
+      <div><h1>Stem</h1><div class="sub">Session agent</div></div>
     </div>
 
     <div class="card">
       <div class="hd"><span>Session</span><span class="dot" id="dot"></span></div>
       <div class="kv"><span class="k">Status</span><span class="v" id="status">connecting…</span></div>
-      <div class="kv"><span class="k">Tempo</span><span class="v" id="tempo">—</span></div>
+      <div class="kv"><span class="k">Tempo</span><span class="v" id="tempo">-</span></div>
       <div class="kv"><span class="k">Tracks</span><span class="v" id="ntracks">0</span></div>
     </div>
 
@@ -155,8 +166,8 @@ body{
 
   <main class="main">
     <div class="topbar">
-      <span class="title">Producer chat</span>
-      <span class="pill" id="model">claude · openrouter</span>
+      <span class="title">Session commands</span>
+      <span class="pill" id="model">StemScript + tools</span>
     </div>
 
     <div class="thread" id="thread"><div class="wrap" id="msgs"></div></div>
@@ -165,12 +176,12 @@ body{
       <div class="cwrap">
         <div class="chips" id="chips"></div>
         <div class="inputbar">
-          <textarea id="input" rows="1" placeholder="Describe what to make — “dreamy chords in D minor with a bassline”…"></textarea>
+          <textarea id="input" rows="1" placeholder="Type a session command"></textarea>
           <button class="send" id="send" aria-label="Send">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </button>
         </div>
-        <div class="foot">Stem can make mistakes — review before you commit. ⌘↵ to send.</div>
+        <div class="foot">Review generated tracks before saving.</div>
       </div>
     </div>
   </main>
@@ -179,8 +190,14 @@ body{
 <script>
 const $=s=>document.querySelector(s);
 const msgs=$('#msgs'), thread=$('#thread'), input=$('#input');
-const SUGGEST=["A dreamy chord progression in D minor","Add a walking bassline under it",
-  "Trap beat in F minor","Set the tempo to 90","An emotional piano progression in C","Undo that"];
+const SUGGEST=[
+  "stem:\ntempo 128\nkey D minor\nduration 60s\nchords Dm Bb C Dm\ndrums four_on_floor\nbass driving\nlead chant",
+  "Make isolated vocals without music, sing \"hold the night\", 4 seconds",
+  "Make me a party rock anthem",
+  "How would you make the entire song better? and a minute long please",
+  "Generate a full song with vocals, tight electronic pop hook, 8 seconds",
+  "Check generation backend status"
+];
 
 function chips(){const c=$('#chips');c.innerHTML='';SUGGEST.forEach(t=>{
   const b=document.createElement('div');b.className='chip';b.textContent=t;
@@ -205,9 +222,26 @@ function addMsg(who){
 }
 function bubble(content,html){const b=document.createElement('div');b.className='bubble';b.innerHTML=html;content.appendChild(b);thread.scrollTop=thread.scrollHeight;return b;}
 
-const ICONS={create_midi_track:'＋',insert_chord_progression:'♪',insert_chord:'♪',
-  insert_bassline:'♫',insert_drum_pattern:'🥁',set_tempo:'♩',get_session_overview:'⊙',
-  insert_midi_notes:'♪',undo:'↩',transport_play:'▶',generate_sample:'✦'};
+const TOOL_LABELS={
+  create_midi_track:'Create track',
+  insert_chord_progression:'Write chords',
+  insert_chord:'Write chord',
+  insert_bassline:'Write bass',
+  insert_drum_pattern:'Write drums',
+  set_tempo:'Set tempo',
+  get_session_overview:'Read session',
+  insert_midi_notes:'Write notes',
+  undo:'Undo',
+  transport_play:'Play',
+  transport_stop:'Stop',
+  generate_sample:'Generate audio',
+  generate_song:'Generate song',
+  generate_song_stems:'Split song stems',
+  generate_vocals:'Generate vocals',
+  generate_vocal_lines:'Generate vocal lines',
+  isolate_vocals:'Isolate vocals',
+  get_generation_status:'Check generators'
+};
 
 function renderActs(content,acts){
   let box=content.querySelector('.acts');
@@ -217,11 +251,11 @@ function renderActs(content,acts){
     const el=document.createElement('div');el.className='act';
     if(a.kind==='call'){
       const meta=Object.entries(a.input||{}).map(([k,v])=>`${k}:${v}`).join('  ');
-      el.innerHTML=`<span class="st run"></span><span class="nm">${a.name}</span><span class="meta">${meta}</span>`;
+      el.innerHTML=`<span class="st run"></span><span class="nm">${TOOL_LABELS[a.name]||a.name}</span><span class="meta">${meta}</span>`;
     }else{
       const ok=a.ok;const detail=a.result.chords?a.result.chords.join(' · '):
         (a.result.notes_inserted?`${a.result.notes_inserted} notes`:(a.result.error||'done'));
-      el.innerHTML=`<span class="st ${ok?'ok':'err'}">${ok?'✓':'✕'}</span><span class="nm">${a.name}</span><span class="meta">${detail}</span>`;
+      el.innerHTML=`<span class="st ${ok?'ok':'err'}">${ok?'✓':'x'}</span><span class="nm">${TOOL_LABELS[a.name]||a.name}</span><span class="meta">${detail}</span>`;
     }
     box.appendChild(el);
   });
@@ -242,7 +276,7 @@ async function send(){
   try{
     const r=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:text})});
     job=(await r.json()).job_id;
-  }catch(e){typing.remove();bubble(content,'⚠️ Could not reach Stem server.');busy=false;$('#send').disabled=false;return;}
+  }catch(e){typing.remove();bubble(content,'Could not reach Stem server.');busy=false;$('#send').disabled=false;return;}
 
   const poll=setInterval(async()=>{
     const r=await fetch('/api/job/'+job);const j=await r.json();
@@ -266,7 +300,7 @@ async function refresh(){
     $('#dot').className='dot'+(s.connected?' live':'');
     $('#status').textContent=s.connected?'Live · Ardour':'Mock session';
     $('#status').style.color=s.connected?'var(--ok)':'var(--warn)';
-    $('#tempo').textContent=s.tempo?Math.round(s.tempo)+' BPM':'—';
+    $('#tempo').textContent=s.tempo?Math.round(s.tempo)+' BPM':'-';
     $('#ntracks').textContent=(s.tracks||[]).length;
     const tc=$('#tracks');
     if(!s.tracks||!s.tracks.length){tc.innerHTML='<div class="empty">No tracks yet</div>';}
@@ -279,7 +313,7 @@ async function refresh(){
 refresh();setInterval(refresh,4000);
 
 addMsg('Stem').appendChild(Object.assign(document.createElement('div'),{className:'bubble',
-  innerHTML:"Hey — I'm <strong>Stem</strong>. Tell me what to make and I'll build it right in your session. Try a suggestion below, or just describe a vibe."}));
+  innerHTML:"Ready."}));
 input.focus();
 </script>
 </body>

@@ -3,12 +3,18 @@ the agent loop driven by a scripted fake provider (no network)."""
 import json
 import pytest
 
+from stem.agent import providers
 from stem.agent.providers import (
     load_config, AnthropicProvider, OpenAICompatProvider,
     CompletionResult, ToolCall, BaseProvider,
 )
 from stem.agent.loop import StemAgent
 from stem.bridge.mock import MockBridge
+
+
+@pytest.fixture(autouse=True)
+def isolated_config(monkeypatch, tmp_path):
+    monkeypatch.setattr(providers, "CONFIG_PATH", tmp_path / "config.json")
 
 
 # ---- config resolution ----
@@ -29,6 +35,21 @@ def test_env_overrides(monkeypatch):
     assert cfg["provider"] == "openrouter"
     assert cfg["base_url"] == "https://openrouter.ai/api/v1"
     assert cfg["api_key"] == "sk-or-test"
+
+
+def test_config_key_wins_when_provider_comes_from_config(monkeypatch):
+    providers.CONFIG_PATH.write_text(json.dumps({
+        "provider": "openrouter",
+        "model": "anthropic/claude-sonnet-4.6",
+        "api_key": "sk-or-good-config",
+    }))
+    monkeypatch.delenv("STEM_PROVIDER", raising=False)
+    monkeypatch.setenv("OPENROUTER_API_KEY", "sk-or-stale-env")
+
+    cfg = load_config()
+
+    assert cfg["provider"] == "openrouter"
+    assert cfg["api_key"] == "sk-or-good-config"
 
 
 def test_explicit_args_beat_env(monkeypatch):

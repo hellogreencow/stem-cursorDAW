@@ -75,8 +75,10 @@ def load_config(provider: Optional[str] = None, model: Optional[str] = None,
         except json.JSONDecodeError:
             raise RuntimeError(f"invalid JSON in {CONFIG_PATH}")
 
-    provider = (provider or os.environ.get("STEM_PROVIDER")
-                or file_cfg.get("provider") or "anthropic").lower()
+    explicit_provider = provider is not None
+    env_provider = os.environ.get("STEM_PROVIDER")
+    file_provider = file_cfg.get("provider")
+    provider = (provider or env_provider or file_provider or "anthropic").lower()
     if provider not in DEFAULT_MODELS:
         raise ValueError(f"unknown provider '{provider}' — choose from: "
                          f"{', '.join(DEFAULT_MODELS)}")
@@ -87,16 +89,34 @@ def load_config(provider: Optional[str] = None, model: Optional[str] = None,
         raise ValueError(f"provider '{provider}' requires an explicit model "
                          "(STEM_MODEL or config.json)")
 
-    api_key = (api_key or os.environ.get(KEY_ENV_VARS[provider])
-               or os.environ.get("STEM_API_KEY") or file_cfg.get("api_key"))
+    provider_from_config = (
+        not explicit_provider and not env_provider and file_provider == provider)
+    if api_key:
+        resolved_key = api_key
+    elif provider_from_config:
+        resolved_key = (file_cfg.get("api_key")
+                        or os.environ.get(KEY_ENV_VARS[provider])
+                        or os.environ.get("STEM_API_KEY"))
+    else:
+        resolved_key = (os.environ.get(KEY_ENV_VARS[provider])
+                        or os.environ.get("STEM_API_KEY")
+                        or file_cfg.get("api_key"))
 
-    base_url = (base_url or os.environ.get("STEM_BASE_URL")
-                or file_cfg.get("base_url") or BASE_URLS.get(provider))
-    if provider == "custom" and not base_url:
+    if base_url:
+        resolved_base_url = base_url
+    elif provider_from_config:
+        resolved_base_url = (file_cfg.get("base_url")
+                             or os.environ.get("STEM_BASE_URL")
+                             or BASE_URLS.get(provider))
+    else:
+        resolved_base_url = (os.environ.get("STEM_BASE_URL")
+                             or file_cfg.get("base_url")
+                             or BASE_URLS.get(provider))
+    if provider == "custom" and not resolved_base_url:
         raise ValueError("provider 'custom' requires STEM_BASE_URL")
 
     return {"provider": provider, "model": model,
-            "api_key": api_key, "base_url": base_url}
+            "api_key": resolved_key, "base_url": resolved_base_url}
 
 
 class BaseProvider:

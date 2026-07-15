@@ -4,6 +4,8 @@ Usage:
     python -m stem.cli                      # auto: Ardour if reachable, else mock
     python -m stem.cli --mock              # force in-memory session
     python -m stem.cli --ardour            # require live Ardour bridge
+    python -m stem.cli --script song.stem  # run StemScript against the session
+    python -m stem.cli --ui                # open the Apple-inspired command UI
     python -m stem.cli --provider openrouter --model meta-llama/llama-3.3-70b
     python -m stem.cli --provider openai
     python -m stem.cli --provider custom --base-url http://localhost:11434/v1 --model llama3
@@ -16,6 +18,8 @@ import sys
 from .bridge.mock import MockBridge
 from .bridge.ardour import ArdourBridge
 from .agent.loop import StemAgent
+from .agent.local_fallback import handle_local_intent
+from .language import execute_stemscript, StemScriptError
 from .tools import generation_tools  # noqa: F401 (registers tools)
 
 
@@ -44,8 +48,37 @@ def flag_value(argv, name):
     return None
 
 
+def _clean_argv(argv):
+    flags_with_values = {
+        "--provider", "--model", "--api-key", "--base-url", "--script",
+    }
+    cleaned = []
+    skip = False
+    for i, item in enumerate(argv):
+        if skip:
+            skip = False
+            continue
+        if item in flags_with_values:
+            skip = i + 1 < len(argv)
+            continue
+        cleaned.append(item)
+    return cleaned
+
+
+def launch_ui(argv):
+    from . import webserver
+    sys.argv = [sys.argv[0]] + [
+        a for a in argv if a not in ("--ui", "--ardour")
+    ]
+    webserver.main()
+
+
 def main():
     argv = sys.argv[1:]
+    if "--ui" in argv:
+        launch_ui(argv)
+        return
+
     bridge = pick_bridge(argv)
     agent = StemAgent(
         bridge,
@@ -66,6 +99,17 @@ def main():
             mark = "✗" if "error" in r else "✓"
             print(f"  {mark} {r}")
 
+    script_path = flag_value(argv, "--script")
+    if script_path:
+        with open(script_path, "r", encoding="utf-8") as fh:
+            script = fh.read()
+        try:
+            print(execute_stemscript(script, agent.ctx, on_event))
+        except StemScriptError as e:
+            print(f"✗ StemScript error: {e}")
+            sys.exit(1)
+        return
+
     print("Stem — AI producer agent. Type a command ('quit' to exit).\n")
     while True:
         try:
@@ -75,7 +119,9 @@ def main():
         if not user or user.lower() in ("quit", "exit"):
             break
         try:
-            reply = agent.chat(user, on_event)
+            reply = handle_local_intent(user, agent.ctx, on_event)
+            if reply is None:
+                reply = agent.chat(user, on_event)
             print(f"\nstem> {reply}\n")
         except Exception as e:
             print(f"\n✗ {e}\n")

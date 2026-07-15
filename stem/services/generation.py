@@ -28,7 +28,9 @@ class GenerationService:
         self.suno_available = bool(SUNO_API_KEY)
 
     def status(self) -> dict:
-        return {"ace_step": self.ace_available, "suno": self.suno_available}
+        from .elevenlabs_music import elevenlabs_music
+        return {"ace_step": self.ace_available, "suno": self.suno_available,
+                "elevenlabs_music": elevenlabs_music.available()}
 
     def generate_sample(self, prompt: str, duration_seconds: float = 8.0,
                         backend: Optional[str] = None) -> str:
@@ -38,15 +40,18 @@ class GenerationService:
         rather than silently returning fake audio.
         """
         backend = backend or ("ace_step" if self.ace_available
-                              else "suno" if self.suno_available else None)
+                              else "suno" if self.suno_available
+                              else "elevenlabs_music")
         if backend == "ace_step":
             return self._generate_ace_step(prompt, duration_seconds)
         if backend == "suno":
             return self._generate_suno(prompt, duration_seconds)
+        if backend == "elevenlabs_music":
+            return self._generate_elevenlabs(prompt, duration_seconds)
         raise RuntimeError(
             "No generation backend configured. Set ACE_STEP_DIR to the "
             "ACE-Step checkout (e.g. ~/Desktop/ai-music-daw with its models/ "
-            "and acestep-env/) or set SUNO_API_KEY.")
+            "and acestep-env/), set SUNO_API_KEY, or set ELEVENLABS_API_KEY.")
 
     def _generate_ace_step(self, prompt: str, duration: float) -> str:
         out = OUTPUT_DIR / f"ace_{uuid.uuid4().hex[:8]}.wav"
@@ -71,6 +76,14 @@ class GenerationService:
         # to verify the current API contract.
         raise RuntimeError("Suno backend wired but unverified — needs "
                            "SUNO_API_KEY and a live test. See GAPS.md.")
+
+    def _generate_elevenlabs(self, prompt: str, duration: float) -> str:
+        from .elevenlabs_music import elevenlabs_music
+        if not elevenlabs_music.available():
+            raise RuntimeError(
+                "No generation backend configured. Set ACE_STEP_DIR, "
+                "SUNO_API_KEY, or ELEVENLABS_API_KEY.")
+        return elevenlabs_music.generate(prompt, duration, instrumental=True)
 
 
 generation_service = GenerationService()

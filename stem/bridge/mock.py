@@ -75,10 +75,23 @@ class MockBridge(Bridge):
         return list(self.notes.get(track_id, []))
 
     # ---- write ----
-    def create_midi_track(self, name: str):
+    def list_instruments(self) -> list:
+        return [
+            {"id": "mock.piano", "name": "Studio Piano", "creator": "Stem",
+             "category": "Piano", "type": "Mock", "presets": []},
+            {"id": "mock.synth", "name": "Poly Synth", "creator": "Stem",
+             "category": "Synth", "type": "Mock", "presets": []},
+        ]
+
+    def create_midi_track(self, name: str, instrument_id: Optional[str] = None,
+                          preset: Optional[str] = None):
         action_id = self._checkpoint()
         track_id = f"trk_{uuid.uuid4().hex[:6]}"
-        self.tracks[track_id] = TrackInfo(track_id=track_id, name=name, kind="midi")
+        plugins = []
+        if instrument_id:
+            plugins.append({"id": instrument_id, "preset": preset})
+        self.tracks[track_id] = TrackInfo(
+            track_id=track_id, name=name, kind="midi", plugins=plugins)
         self.notes[track_id] = []
         return track_id, action_id
 
@@ -122,9 +135,15 @@ class MockBridge(Bridge):
 
     def import_audio(self, track_id: str, file_path: str,
                      position_seconds: float = 0.0) -> str:
+        action_id = self._checkpoint()
+        if not track_id:
+            track_id = f"aud_{uuid.uuid4().hex[:6]}"
+            self.tracks[track_id] = TrackInfo(
+                track_id=track_id, name=file_path.rsplit("/", 1)[-1],
+                kind="audio")
+            self.audio[track_id] = []
         if track_id not in self.tracks:
             raise KeyError(f"no such track: {track_id}")
-        action_id = self._checkpoint()
         self.audio.setdefault(track_id, []).append((file_path, position_seconds))
         return action_id
 

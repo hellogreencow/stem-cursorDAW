@@ -58,7 +58,12 @@ class Bridge(ABC):
 
     # ---- write (all return action_id) ----
     @abstractmethod
-    def create_midi_track(self, name: str) -> tuple:
+    def list_instruments(self) -> list:
+        """Return the instrument plugins currently available in the DAW."""
+
+    @abstractmethod
+    def create_midi_track(self, name: str, instrument_id: Optional[str] = None,
+                          preset: Optional[str] = None) -> tuple:
         """returns (track_id, action_id)"""
 
     @abstractmethod
@@ -98,3 +103,17 @@ class Bridge(ABC):
 
     @abstractmethod
     def save_session(self) -> None: ...
+
+    # ---- audio health (concrete defaults; live bridge overrides) ----
+    def diagnose_audio(self, track_id: Optional[str] = None) -> dict:
+        """Report why playback might be silent: engine, master routing,
+        per-track instrument state. Bridges without a live engine return a
+        no-op marker."""
+        return {"supported": False,
+                "note": "audio diagnostics need a live Ardour session"}
+
+    def fix_silent_instruments(self) -> dict:
+        """Make silent MIDI tracks audible (add/replace a working synth).
+        Returns the list of tracks changed."""
+        return {"ok": False, "fixed": [], "count": 0,
+                "note": "not supported by this bridge"}

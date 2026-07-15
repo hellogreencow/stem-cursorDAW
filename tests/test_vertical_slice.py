@@ -24,9 +24,15 @@ def test_phase0_milestone(ctx):
     assert overview["tempo"] == 120.0 and overview["tracks"] == []
 
     # create track
-    r = run(ctx, "create_midi_track", name="Chords")
+    instruments = run(ctx, "list_instruments", query="piano")
+    assert instruments["count"] == 1
+    chosen = instruments["instruments"][0]["id"]
+
+    r = run(ctx, "create_midi_track", name="Chords",
+            instrument_id=chosen)
     track_id = r["track_id"]
     assert track_id and r["action_id"]
+    assert ctx.bridge.tracks[track_id].plugins[0]["id"] == chosen
 
     # insert in-key progression (C major I-V-vi-IV)
     r = run(ctx, "insert_chord_progression", track_id=track_id,
@@ -82,6 +88,7 @@ def test_drum_pattern(ctx):
     assert "error" not in r and r["notes_inserted"] > 0
     notes = run(ctx, "get_midi_notes", track_id=track_id)["notes"]
     assert any(n["pitch"] == 36 for n in notes)  # kick present
+    assert all(n.channel == 9 for n in ctx.bridge.notes[track_id])
 
 
 def test_bassline_follows_progression(ctx):

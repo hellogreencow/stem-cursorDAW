@@ -6,11 +6,10 @@ drums, controls the mixer — with every action undoable.
 
 ## Status
 
-Working today (verified by tests): the complete agent stack against an
-in-memory session emulator — tool registry (18 typed tools), music-theory
-engine, validation, undo, CLI. The live-Ardour bridge code exists but is
-**unverified** (Ardour is not installed on this machine; its Lua calls need
-checking against a live 8.x instance — see GAPS.md).
+Working today: the complete agent stack against an in-memory session emulator,
+plus the native Ardour bridge used by the bundled Stem panel. Core generation
+flows, deterministic local fallbacks, StemScript, validation, undo, and the CLI
+are covered by tests.
 
 ## Setup
 
@@ -47,6 +46,8 @@ CLI flags override everything: `--provider`, `--model`, `--api-key`, `--base-url
 ```bash
 ./venv/bin/python -m stem.cli --mock     # try it now, no Ardour needed
 ./venv/bin/python -m stem.cli            # auto-detects live Ardour
+./venv/bin/python -m stem.cli --ui       # command-launched Apple-inspired UI
+./venv/bin/python -m stem.cli --mock --script examples/party_anthem.stem
 ```
 
 Example session:
@@ -59,6 +60,25 @@ you> set the tempo to 90 and lay down a dreamy progression in F, then play it
   ⚙ transport_play({})
 stem> Done — F, C, Dm, Bb at 90bpm, playing now. Say "undo" to revert.
 ```
+
+## StemScript
+
+StemScript is the small production language that maps directly to undoable
+Ardour actions:
+
+```text
+stem:
+tempo 128
+key D minor
+duration 60s
+chords Dm Bb C Dm
+drums four_on_floor
+bass driving
+lead chant
+```
+
+The same script can be pasted into the native Stem panel, launched from the
+CLI with `--script`, or run from the web command UI.
 
 ## Connecting to real Ardour
 

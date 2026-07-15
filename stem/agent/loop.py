@@ -15,11 +15,15 @@ SYSTEM = """You are Stem, an AI music production agent operating a real DAW \
 (Ardour) session on behalf of a producer.
 
 Rules:
-- Always read the session (get_session_overview) before your first mutation \
-in a conversation, and target tracks by their track_id.
+- Always read the current session (get_session_overview) before mutating the \
+DAW, and target tracks by their track_id.
 - For harmonic/rhythmic material (chords, progressions, basslines, drums), \
 use the theory tools — never free-hand MIDI pitches for chords or scales. \
 Use insert_midi_notes only for explicit user-specified notes or melodies.
+- Before creating a MIDI track, call list_instruments and choose the best \
+installed instrument for that role. Consider the full palette: acoustic and \
+electric pianos, organs, guitars, basses, orchestral instruments, drums, \
+samplers, and synthesizers. Reuse the same plugin only when musically apt.
 - Every mutation returns an action_id. After completing a request, tell the \
 user what you did and that it can be undone.
 - If a tool errors, diagnose and adapt; do not silently claim success.
@@ -44,6 +48,58 @@ class StemAgent:
         self.provider = provider or make_provider(**provider_kwargs)
         self.ctx = ToolContext(bridge=bridge)
         self.messages: list = []   # neutral format
+
+    def reset(self):
+        """Clear conversation history for a fresh chat."""
+        self.messages = []
+
+    def _trim_history(self):
+        self.messages = self.messages[-80:]
+        while self.messages and self.messages[0]["role"] != "user":
+            self.messages.pop(0)
+
+    def load_history(self, turns):
+        """Replace visible conversation history from the native panel.
+
+        History files only contain user/assistant transcript text, not prior
+        tool calls. Keep the provider context valid by dropping malformed turns,
+        discarding leading assistant-only content, and coalescing duplicate
+        adjacent roles.
+        """
+        messages = []
+        for turn in turns or []:
+            role = turn.get("role") if isinstance(turn, dict) else None
+            content = turn.get("content") if isinstance(turn, dict) else None
+            if role not in {"user", "assistant"} or not isinstance(content, str):
+                continue
+            content = content.strip()
+            if not content:
+                continue
+            if not messages and role != "user":
+                continue
+            if messages and messages[-1]["role"] == role:
+                messages[-1]["content"] += "\n\n" + content
+            else:
+                messages.append({"role": role, "content": content})
+        self.messages = messages
+        self._trim_history()
+
+    def record_turn(self, user_message: str, assistant_text: str):
+        """Record a completed visible turn that bypassed provider.chat.
+
+        Deterministic local fallbacks still need to become part of the running
+        conversation so follow-up prompts and restored history match the panel.
+        """
+        user_message = (user_message or "").strip()
+        assistant_text = (assistant_text or "").strip()
+        if user_message:
+            if not (self.messages
+                    and self.messages[-1].get("role") == "user"
+                    and self.messages[-1].get("content") == user_message):
+                self.messages.append({"role": "user", "content": user_message})
+        if assistant_text:
+            self.messages.append({"role": "assistant", "content": assistant_text})
+        self._trim_history()
 
     def chat(self, user_message: str, on_event=None) -> str:
         """Run one user turn to completion (multi-step tool use). Returns the
