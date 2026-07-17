@@ -1,0 +1,49 @@
+{
+  "name": "selection_aware_propose",
+  "user": "add a short motif on my selection, but let me review first",
+  "setup": [
+    {
+      "selection": {
+        "create_track": "Lead",
+        "start_seconds": 0.0,
+        "end_seconds": 4.0
+      }
+    }
+  ],
+  "script": [
+    {
+      "text": "",
+      "tool_calls": [
+        {"id": "1", "name": "get_selection", "input": {}}
+      ]
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {"id": "2", "name": "get_session_overview", "input": {}}
+      ]
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "3",
+          "name": "propose_midi_notes",
+          "input": {
+            "track_id": "__SELECTION_TRACK__",
+            "summary": "motif",
+            "notes": [
+              {"pitch": 72, "start_beat": 0.0, "length_beats": 0.5},
+              {"pitch": 74, "start_beat": 1.0, "length_beats": 0.5}
+            ]
+          }
+        }
+      ]
+    },
+    {"text": "Staged a 2-note motif for review — accept or reject."}
+  ],
+  "expect_tools": ["get_selection", "propose_midi_notes"],
+  "expect_tools_ordered": true,
+  "expect_session": {"min_tracks": 1, "min_notes_on_any_track": 0},
+  "expect_reply_contains": ["review"]
+}

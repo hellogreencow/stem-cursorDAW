@@ -491,8 +491,8 @@ Do these in order this week-shaped engineering slice (effort in subsystems, not 
 
 Decision log: `DECISIONS.md`.
 
-**Next slice:** ~~plugin / cassettes / M3 proposals / H3 fuzzer~~ **done**.
-Next: agent golden transcripts (H5), live dogfood, or M4 memory spike.
+**Next slice:** ~~H5 goldens + M4.1 memory~~ **done**.
+Next: M4.2 autonomous task mode spike, live dogfood, or CI workflow (`pr-fast`).
 
 ---
 

@@ -21,6 +21,7 @@ from .tools import generation_tools  # noqa: F401 — registers extra tools
 from .tools import sample_tools  # noqa: F401 — registers sample search/import
 from .tools import plugin_tools  # noqa: F401 — registers plugin load/param
 from .tools import proposal_tools  # noqa: F401 — registers selection/proposals
+from .tools import memory_tools  # noqa: F401 — registers project memory
 
 
 def _chat_paths():

@@ -1,0 +1,25 @@
+{
+  "name": "memory_defaults",
+  "project_id": "golden-mem",
+  "user": "start a new idea using my usual defaults",
+  "script": [
+    {
+      "text": "",
+      "tool_calls": [
+        {"id": "1", "name": "recall_memory", "input": {}}
+      ]
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {"id": "2", "name": "set_tempo", "input": {"bpm": 95}}
+      ]
+    },
+    {"text": "Using your preferred 95 BPM — ready to build."}
+  ],
+  "expect_tools": ["recall_memory", "set_tempo"],
+  "expect_tools_ordered": true,
+  "expect_session": {"tempo": 95},
+  "expect_reply_contains": ["95"],
+  "expect_system_contains": ["preferred tempo: 95"]
+}

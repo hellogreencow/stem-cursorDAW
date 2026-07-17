@@ -129,6 +129,12 @@ The agent can stage MIDI with `propose_midi_notes`, then `accept_proposal` or
 `reject_proposal`, without writing the session until accept. Ghost piano-roll
 rendering comes later; the review buffer is already real.
 
+## Project memory
+
+Preferences persist under `~/.stem/memory/<project>.json` (or `$STEM_HOME`).
+The agent injects them into its system prompt and can `recall_memory` /
+`update_memory` explicitly.
+
 ## Tests
 
 ```bash

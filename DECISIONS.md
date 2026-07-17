@@ -215,3 +215,38 @@ into minutes. Seed printed on failure.
 stack never crashes, action_ids unique enough, session remains coherent.
 
 **Result:** 80-step fuzzer green in PR gate (`not nightly`).
+
+---
+
+## D013 — Golden transcripts are JSON, not YAML (2026-07-17)
+
+**Decision:** H5 agent goldens live as `.json` under `tests/fixtures/transcripts/`
+and run via ScriptedProvider. No PyYAML dependency.
+
+**Why:** Keep requirements thin; JSON is enough for tool scripts + predicates.
+
+**Downstream:** Runner asserts tool name sequence (ordered or subset), session
+predicates (tempo/tracks/notes), and reply substrings. Local-fallback goldens
+can be added as a second file type later.
+
+**Result:** (filled after tests)
+
+---
+
+## D014 — Project memory is explicit tools + system injection (2026-07-17)
+
+**Decision:** Store `STEM_HOME/memory/<project_id>.json`. Inject a short
+memory block into the agent system prompt; expose `recall_memory` /
+`update_memory` tools. Redact secret-like keys on write.
+
+**Why:** M4.1 acceptance (“second session defaults”) needs durable state without
+silent telepathy. Tools make memory inspectable/testable; prompt injection
+makes it ambient for the model.
+
+**Downstream:**
+- `project_id` on StemAgent (default `"default"`)
+- Caps: short notes, bounded lists
+- Never store API keys / tokens
+- Autonomy task modes still deferred
+
+**Result:** (filled after tests)

@@ -46,6 +46,8 @@ Legend: **Y** = supported/proven · **P** = partial/stub · **N** = no · **—*
 | `list_proposals` | Y | Y† | Y | |
 | `accept_proposal` | Y | Y† | Y | Commits via insert_midi_notes |
 | `reject_proposal` | Y | Y† | Y | |
+| `recall_memory` | Y | — | Y | STEM_HOME/memory/*.json |
+| `update_memory` | Y | — | Y | Secrets redacted on write |
 
 \* Bridge ABC default / mock does not fully emulate engine audio.  
 † Import path works on mock; generation backend may be stubbed in tests.
@@ -53,6 +55,6 @@ Legend: **Y** = supported/proven · **P** = partial/stub · **N** = no · **—*
   Proposals are Python-side on ArdourBridge (not piano-roll ghosts).
 
 **Not started (Phase 2+):** embeddings/CLAP search, piano-roll ghost preview,
-project memory / autonomous mix (M4).
+autonomous mix/arrange task modes (M4.2+).
 
-Last updated: 2026-07-17 (M3 proposals + H3 fuzzer).
+Last updated: 2026-07-17 (H5 goldens + M4.1 memory).

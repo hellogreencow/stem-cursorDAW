@@ -1,0 +1,33 @@
+{
+  "name": "tempo_and_track",
+  "user": "set tempo to 100 and create a chord track",
+  "script": [
+    {
+      "text": "",
+      "tool_calls": [
+        {"id": "1", "name": "get_session_overview", "input": {}}
+      ]
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {"id": "2", "name": "set_tempo", "input": {"bpm": 100}}
+      ]
+    },
+    {
+      "text": "",
+      "tool_calls": [
+        {
+          "id": "3",
+          "name": "create_midi_track",
+          "input": {"name": "Chords", "instrument_id": "mock.piano"}
+        }
+      ]
+    },
+    {"text": "Created Chords at 100 BPM — undoable."}
+  ],
+  "expect_tools": ["get_session_overview", "set_tempo", "create_midi_track"],
+  "expect_tools_ordered": true,
+  "expect_session": {"tempo": 100, "min_tracks": 1},
+  "expect_reply_contains": ["100"]
+}
