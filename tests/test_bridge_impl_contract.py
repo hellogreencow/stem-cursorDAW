@@ -54,6 +54,12 @@ def test_live_bridge_exposes_plugin_control_handlers():
     assert "ARDOUR.LuaAPI.get_processor_param" in source
 
 
+def test_live_bridge_exposes_playhead_and_selection_handlers():
+    source = BRIDGE_IMPL.read_text()
+    for name in ("get_playhead", "get_selection", "set_selection"):
+        assert f"function handlers.{name}" in source, name
+
+
 def test_live_bridge_uses_native_tempo_helper():
     source = BRIDGE_IMPL.read_text()
     tempo_handler = source.split("function handlers.set_tempo", 1)[1].split(

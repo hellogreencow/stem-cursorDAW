@@ -39,12 +39,20 @@ Legend: **Y** = supported/proven · **P** = partial/stub · **N** = no · **—*
 | `load_plugin` | Y | Y | Y | Live Lua best-effort; mock proven |
 | `get_plugin_params` | Y | Y | Y | Live may vary by plugin binding |
 | `set_plugin_param` | Y | Y | Y | Undoable; clamps on mock |
+| `get_playhead` | Y | Y | Y | |
+| `get_selection` | Y | P | Y | Live Lua best-effort |
+| `set_selection` | Y | N* | Y | Live reports unsupported |
+| `propose_midi_notes` | Y | Y† | Y | Sidecar buffer (D011) |
+| `list_proposals` | Y | Y† | Y | |
+| `accept_proposal` | Y | Y† | Y | Commits via insert_midi_notes |
+| `reject_proposal` | Y | Y† | Y | |
 
 \* Bridge ABC default / mock does not fully emulate engine audio.  
 † Import path works on mock; generation backend may be stubbed in tests.
   Cassettes: `STEM_CASSETTE_DIR` + `STEM_CASSETTE_MODE=replay`.
+  Proposals are Python-side on ArdourBridge (not piano-roll ghosts).
 
-**Not started (Phase 2+):** embeddings/CLAP search, `get_playhead`,
-`get_selection`, proposal/preview accept.
+**Not started (Phase 2+):** embeddings/CLAP search, piano-roll ghost preview,
+project memory / autonomous mix (M4).
 
-Last updated: 2026-07-17 (plugins M2.3 + generation cassettes H6).
+Last updated: 2026-07-17 (M3 proposals + H3 fuzzer).

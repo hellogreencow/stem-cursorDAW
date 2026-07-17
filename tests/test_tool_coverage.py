@@ -9,6 +9,7 @@ import stem.tools.ardour_tools  # noqa: F401
 import stem.tools.generation_tools  # noqa: F401
 import stem.tools.sample_tools  # noqa: F401
 import stem.tools.plugin_tools  # noqa: F401
+import stem.tools.proposal_tools  # noqa: F401
 from stem.tools.core import registry
 
 

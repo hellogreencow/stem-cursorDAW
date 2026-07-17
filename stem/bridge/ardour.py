@@ -89,6 +89,8 @@ class ArdourBridge(Bridge):
         ensure_stem_home()
         self.rpc_timeout = rpc_timeout
         self._action_seq: list = []  # ordered action_ids for undo mapping
+        # Sidecar proposal buffer (D011) — shared shape with MockBridge.
+        self._proposals: dict = {}
 
     # ---- RPC plumbing ----
     def _call(self, method: str, args: Optional[dict] = None) -> dict:
@@ -354,3 +356,88 @@ class ArdourBridge(Bridge):
         if r.get("error"):
             raise RuntimeError(r["error"])
         return self._record_action()
+
+    # ---- context / proposals ----
+    def get_playhead(self) -> float:
+        try:
+            r = self._call("get_playhead")
+            return float(r.get("playhead_seconds", 0.0))
+        except Exception:
+            return float(self.get_session_overview().playhead_seconds)
+
+    def get_selection(self) -> dict:
+        try:
+            r = self._call("get_selection")
+            r.setdefault("supported", True)
+            return r
+        except Exception:
+            return {"track_ids": [], "region_ids": [],
+                    "start_seconds": None, "end_seconds": None,
+                    "supported": False}
+
+    def set_selection(self, track_ids: Optional[list] = None,
+                      start_seconds: Optional[float] = None,
+                      end_seconds: Optional[float] = None,
+                      region_ids: Optional[list] = None) -> dict:
+        args = {}
+        if track_ids is not None:
+            args["track_ids"] = track_ids
+        if region_ids is not None:
+            args["region_ids"] = region_ids
+        if start_seconds is not None:
+            args["start_seconds"] = start_seconds
+        if end_seconds is not None:
+            args["end_seconds"] = end_seconds
+        return self._call("set_selection", args)
+
+    def propose_midi_notes(self, track_id: str, notes: list,
+                           start_beat: float = 0.0,
+                           summary: str = "") -> str:
+        proposal_id = f"prop_{uuid.uuid4().hex[:8]}"
+        staged = [{
+            "pitch": n.pitch,
+            "start_beat": n.start_beat + start_beat,
+            "length_beats": n.length_beats,
+            "velocity": n.velocity,
+            "channel": n.channel,
+        } for n in notes]
+        self._proposals[proposal_id] = {
+            "proposal_id": proposal_id,
+            "track_id": track_id,
+            "notes": staged,
+            "summary": summary or f"{len(staged)} notes",
+            "status": "pending",
+        }
+        return proposal_id
+
+    def list_proposals(self) -> list:
+        return [{
+            "proposal_id": p["proposal_id"],
+            "track_id": p["track_id"],
+            "summary": p["summary"],
+            "status": p["status"],
+            "note_count": len(p["notes"]),
+        } for p in self._proposals.values()]
+
+    def accept_proposal(self, proposal_id: str) -> str:
+        p = self._proposals.get(proposal_id)
+        if not p:
+            raise KeyError(f"unknown proposal: {proposal_id}")
+        if p["status"] != "pending":
+            raise ValueError(f"proposal not pending: {p['status']}")
+        midi = [MidiNote(pitch=n["pitch"], start_beat=n["start_beat"],
+                         length_beats=n["length_beats"],
+                         velocity=n.get("velocity", 100),
+                         channel=n.get("channel", 0))
+                for n in p["notes"]]
+        action_id = self.insert_midi_notes(p["track_id"], midi, 0.0)
+        p["status"] = "accepted"
+        p["action_id"] = action_id
+        return action_id
+
+    def reject_proposal(self, proposal_id: str) -> bool:
+        p = self._proposals.get(proposal_id)
+        if not p or p["status"] != "pending":
+            return False
+        p["status"] = "rejected"
+        return True

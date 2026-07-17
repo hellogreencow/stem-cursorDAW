@@ -50,6 +50,14 @@ class MockBridge(Bridge):
         self.markers: list = []
         self._undo_stack: list = []     # (action_id, snapshot)
         self._catalog = {p["id"]: p for p in MOCK_PLUGIN_CATALOG}
+        self.selection = {
+            "track_ids": [],
+            "region_ids": [],
+            "start_seconds": None,
+            "end_seconds": None,
+            "supported": True,
+        }
+        self._proposals: dict = {}  # proposal_id -> dict
 
     def connected(self) -> bool:
         return True
@@ -251,3 +259,83 @@ class MockBridge(Bridge):
 
     def save_session(self) -> None:
         pass
+
+    # ---- context / proposals ----
+    def get_playhead(self) -> float:
+        return self.playhead
+
+    def get_selection(self) -> dict:
+        return dict(self.selection)
+
+    def set_selection(self, track_ids: Optional[list] = None,
+                      start_seconds: Optional[float] = None,
+                      end_seconds: Optional[float] = None,
+                      region_ids: Optional[list] = None) -> dict:
+        if track_ids is not None:
+            for tid in track_ids:
+                if tid not in self.tracks:
+                    raise KeyError(f"no such track: {tid}")
+            self.selection["track_ids"] = list(track_ids)
+        if region_ids is not None:
+            self.selection["region_ids"] = list(region_ids)
+        if start_seconds is not None:
+            self.selection["start_seconds"] = float(start_seconds)
+        if end_seconds is not None:
+            self.selection["end_seconds"] = float(end_seconds)
+        self.selection["supported"] = True
+        return dict(self.selection)
+
+    def propose_midi_notes(self, track_id: str, notes: list,
+                           start_beat: float = 0.0,
+                           summary: str = "") -> str:
+        if track_id not in self.tracks:
+            raise KeyError(f"no such track: {track_id}")
+        if self.tracks[track_id].kind != "midi":
+            raise ValueError(f"track {track_id} is not a MIDI track")
+        proposal_id = f"prop_{uuid.uuid4().hex[:8]}"
+        staged = []
+        for n in notes:
+            staged.append(MidiNote(
+                pitch=n.pitch, start_beat=n.start_beat + start_beat,
+                length_beats=n.length_beats, velocity=n.velocity,
+                channel=n.channel))
+        self._proposals[proposal_id] = {
+            "proposal_id": proposal_id,
+            "track_id": track_id,
+            "notes": staged,
+            "summary": summary or f"{len(staged)} notes",
+            "status": "pending",
+        }
+        return proposal_id
+
+    def list_proposals(self) -> list:
+        out = []
+        for p in self._proposals.values():
+            out.append({
+                "proposal_id": p["proposal_id"],
+                "track_id": p["track_id"],
+                "summary": p["summary"],
+                "status": p["status"],
+                "note_count": len(p["notes"]),
+            })
+        return out
+
+    def accept_proposal(self, proposal_id: str) -> str:
+        p = self._proposals.get(proposal_id)
+        if not p:
+            raise KeyError(f"unknown proposal: {proposal_id}")
+        if p["status"] != "pending":
+            raise ValueError(f"proposal not pending: {p['status']}")
+        action_id = self.insert_midi_notes(p["track_id"], p["notes"], 0.0)
+        p["status"] = "accepted"
+        p["action_id"] = action_id
+        return action_id
+
+    def reject_proposal(self, proposal_id: str) -> bool:
+        p = self._proposals.get(proposal_id)
+        if not p:
+            return False
+        if p["status"] != "pending":
+            return False
+        p["status"] = "rejected"
+        return True

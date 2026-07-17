@@ -123,11 +123,17 @@ STEM_CASSETTE_DIR=tests/fixtures/cassettes STEM_CASSETTE_MODE=replay \
   ./venv/bin/python -m stem.cli --mock
 ```
 
+## Proposals (Cursor-style review)
+
+The agent can stage MIDI with `propose_midi_notes`, then `accept_proposal` or
+`reject_proposal`, without writing the session until accept. Ghost piano-roll
+rendering comes later; the review buffer is already real.
+
 ## Tests
 
 ```bash
-./venv/bin/python -m pytest tests/ -q          # PR-fast suite (isolates STEM_HOME)
-./venv/bin/python scripts/live_smoke.py        # Phase 0 against live Ardour
+./venv/bin/python -m pytest tests/ -q -m "not nightly"   # PR-fast
+./venv/bin/python scripts/live_smoke.py                  # Phase 0 vs live Ardour
 ```
 
 Tests set `STEM_HOME` to a temp dir so they never touch `~/.stem`. Live smoke

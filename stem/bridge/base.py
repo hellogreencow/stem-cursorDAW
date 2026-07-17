@@ -140,3 +140,35 @@ class Bridge(ABC):
                          plugin_index: int = 0) -> str:
         """Set one plugin parameter; returns action_id."""
         raise RuntimeError("set_plugin_param not supported by this bridge")
+
+    # ---- context / proposals (M3; concrete defaults) ----
+    def get_playhead(self) -> float:
+        return self.get_session_overview().playhead_seconds
+
+    def get_selection(self) -> dict:
+        """What the user is focused on: tracks, time range, regions."""
+        return {"track_ids": [], "region_ids": [],
+                "start_seconds": None, "end_seconds": None,
+                "supported": False}
+
+    def set_selection(self, track_ids: Optional[list] = None,
+                      start_seconds: Optional[float] = None,
+                      end_seconds: Optional[float] = None,
+                      region_ids: Optional[list] = None) -> dict:
+        raise RuntimeError("set_selection not supported by this bridge")
+
+    def propose_midi_notes(self, track_id: str, notes: list,
+                           start_beat: float = 0.0,
+                           summary: str = "") -> str:
+        """Stage notes for accept/reject review; returns proposal_id."""
+        raise RuntimeError("propose_midi_notes not supported by this bridge")
+
+    def list_proposals(self) -> list:
+        return []
+
+    def accept_proposal(self, proposal_id: str) -> str:
+        """Commit a pending proposal; returns action_id of the insert."""
+        raise RuntimeError("accept_proposal not supported by this bridge")
+
+    def reject_proposal(self, proposal_id: str) -> bool:
+        raise RuntimeError("reject_proposal not supported by this bridge")

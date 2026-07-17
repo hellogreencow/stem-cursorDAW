@@ -180,3 +180,38 @@ hard fail (no silent network fallback).
 
 **Result:** Cassette replay + fixture WAV tests green without network/ffmpeg.
 `available()` is true under replay mode so tools do not short-circuit.
+
+---
+
+## D011 — Proposals live in the sidecar, not the piano roll (yet) (2026-07-17)
+
+**Decision:** M3 preview/accept is a Python-side proposal buffer on the Bridge
+(`propose_midi_notes` → `accept_proposal` / `reject_proposal`). No Ardour
+ghost-note dependency for the first cut.
+
+**Why:** EXECUTION_PLAN kill-pivot: structured diff before editor ghosts.
+Unblocks Cursor-like review on mock + live without C++ piano-roll work.
+
+**Downstream:**
+- Accept inserts via normal undoable `insert_midi_notes`
+- Reject discards; pending proposals visible via `list_proposals`
+- Later: ghost rendering can consume the same proposal objects
+- Selection/playhead are first-class read tools for agent context
+
+**Result:** Proposal tools green on mock; accept undoable; reject idempotent
+fail-closed. Live selection Lua is best-effort / set unsupported.
+
+---
+
+## D012 — Soak fuzzer is PR-gated at N=80, nightly can go longer (2026-07-17)
+
+**Decision:** Deterministic MockBridge tool fuzzer with fixed seed; default
+length 80 in PR (`@pytest.mark.nightly` + `slow` for 250-step run).
+
+**Why:** Catches undo/pitch/serialization invariants without slowing the suite
+into minutes. Seed printed on failure.
+
+**Downstream:** Invariants: pitches 0–127, overview JSON-serializable, undo
+stack never crashes, action_ids unique enough, session remains coherent.
+
+**Result:** 80-step fuzzer green in PR gate (`not nightly`).

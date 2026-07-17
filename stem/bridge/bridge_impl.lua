@@ -880,6 +880,80 @@ return function ()
     function handlers.undo(args) Editor:undo(1) return { ok = true } end
     function handlers.save_session(args) Session:save_state("", false, false, false, false, false) return { ok = true } end
 
+    function handlers.get_playhead(args)
+        local sr = Session:nominal_sample_rate()
+        if not sr or sr <= 0 then sr = 48000 end
+        return { playhead_seconds = Session:transport_sample() / sr }
+    end
+
+    -- Best-effort Editor selection. Bindings differ across Ardour builds;
+    -- always return a structured object (supported=false on failure).
+    function handlers.get_selection(args)
+        local out = {
+            track_ids = {},
+            region_ids = {},
+            start_seconds = nil,
+            end_seconds = nil,
+            supported = false,
+        }
+        if not Editor then return out end
+        local ok, sel = pcall(function() return Editor:get_selection() end)
+        if not ok or not sel then return out end
+        out.supported = true
+        local ok_t, tracks = pcall(function()
+            local ids = {}
+            if sel.tracks and sel.tracks:routelist() then
+                for r in sel.tracks:routelist():iter() do
+                    ids[#ids + 1] = r:name()
+                end
+            end
+            return ids
+        end)
+        if ok_t and tracks then out.track_ids = tracks end
+        local ok_r, regions = pcall(function()
+            local ids = {}
+            if sel.regions and sel.regions:regionlist() then
+                for r in sel.regions:regionlist():iter() do
+                    ids[#ids + 1] = r:name()
+                end
+            end
+            return ids
+        end)
+        if ok_r and regions then out.region_ids = regions end
+        local sr = Session:nominal_sample_rate()
+        if sr and sr > 0 then
+            local ok_time, t0, t1 = pcall(function()
+                local tr = sel.time
+                if not tr then return nil, nil end
+                -- Selection time range APIs vary; try common shapes.
+                local s = tr.start_time and tr:start_time() or tr.start
+                local e = tr.end_time and tr:end_time() or tr["end"]
+                if s and e then
+                    return s:samples() / sr, e:samples() / sr
+                end
+                return nil, nil
+            end)
+            if ok_time then
+                out.start_seconds = t0
+                out.end_seconds = t1
+            end
+        end
+        return out
+    end
+
+    function handlers.set_selection(args)
+        -- Setting Editor selection from Lua is build-specific; report honesty.
+        return {
+            ok = false,
+            supported = false,
+            note = "set_selection is not implemented for this Ardour Lua binding; "
+                .. "selection remains user-driven in the Editor",
+            track_ids = args.track_ids or {},
+            start_seconds = args.start_seconds,
+            end_seconds = args.end_seconds,
+        }
+    end
+
     -- ---- dispatch: one poll per LuaTimerDS tick (~100ms, UI thread) ----
     -- the request file is consumed (deleted) once handled; factory locals
     -- don't persist across ticks, so dedupe-by-id alone is not enough.

@@ -22,6 +22,7 @@ from .tools import generation_tools  # noqa: F401 — registers extra tools
 from .tools import ardour_tools  # noqa: F401 — registers ardour_help
 from .tools import sample_tools  # noqa: F401 — registers sample search/import
 from .tools import plugin_tools  # noqa: F401 — registers plugin load/param
+from .tools import proposal_tools  # noqa: F401 — registers selection/proposals
 from .tools.core import registry
 
 WEB_DIR = Path(__file__).parent / "web"

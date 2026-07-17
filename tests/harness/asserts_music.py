@@ -69,3 +69,32 @@ def assert_undo_clears_notes(ctx, track_id: str, action_id: str):
     assert undone.get("undone"), undone
     notes = registry.execute("get_midi_notes", {"track_id": track_id}, ctx)
     assert notes.get("notes") == []
+
+
+def session_fingerprint(bridge) -> dict:
+    """Stable-ish snapshot for invariant checks (not a full deep equal)."""
+    overview = bridge.get_session_overview()
+    tracks = []
+    for t in overview.tracks:
+        notes = bridge.get_midi_notes(t.track_id) if t.kind == "midi" else []
+        tracks.append({
+            "id": t.track_id,
+            "name": t.name,
+            "kind": t.kind,
+            "muted": t.muted,
+            "gain_db": t.gain_db,
+            "plugin_ids": [p.get("id") for p in (t.plugins or [])],
+            "note_count": len(notes),
+            "pitches": sorted(n.pitch for n in notes),
+        })
+    return {
+        "tempo": overview.tempo,
+        "meter": overview.meter,
+        "sample_rate": overview.sample_rate,
+        "markers": list(overview.markers),
+        "tracks": tracks,
+    }
+
+
+def assert_session_equiv(a, b):
+    assert session_fingerprint(a) == session_fingerprint(b)
