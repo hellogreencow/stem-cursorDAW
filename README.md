@@ -108,8 +108,13 @@ export ACE_STEP_DIR=~/Desktop/ai-music-daw   # has models/ + acestep-env/
 ## Tests
 
 ```bash
-./venv/bin/python -m pytest tests/ -q   # 8 tests, includes the Phase 0 milestone
+./venv/bin/python -m pytest tests/ -q          # PR-fast suite (isolates STEM_HOME)
+STEM_LIVE=1 ./venv/bin/python scripts/live_smoke.py   # Phase 0 against live Ardour
 ```
+
+Tests set `STEM_HOME` to a temp dir so they never touch `~/.stem`. Live smoke
+must use the default home (Lua still reads `~/.stem`). See `EXECUTION_PLAN.md`,
+`CAPABILITY_MATRIX.md`, and `DECISIONS.md`.
 
 ## Layout
 

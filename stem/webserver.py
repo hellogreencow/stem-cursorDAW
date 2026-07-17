@@ -17,6 +17,7 @@ from .bridge.ardour import ArdourBridge
 from .bridge.mock import MockBridge
 from .agent.loop import StemAgent
 from .agent.local_fallback import handle_local_intent
+from .paths import ensure_stem_home
 from .tools import generation_tools  # noqa: F401 — registers extra tools
 from .tools import ardour_tools  # noqa: F401 — registers ardour_help
 from .tools.core import registry
@@ -39,8 +40,7 @@ class StemHTTPServer(ThreadingHTTPServer):
 
 def _install_bridge_impl():
     """Keep Ardour's hot-reloaded bridge implementation in sync with Stem."""
-    stem_dir = Path.home() / ".stem"
-    stem_dir.mkdir(exist_ok=True)
+    stem_dir = ensure_stem_home()
     src = Path(__file__).parent / "bridge" / "bridge_impl.lua"
     dst = stem_dir / "bridge_impl.lua"
     body = src.read_text()

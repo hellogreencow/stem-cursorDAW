@@ -482,12 +482,14 @@ Default recommendation: **Minimalist to finish M1**, adopt **Orthogonal StemScri
 
 Do these in order this week-shaped engineering slice (effort in subsystems, not calendar):
 
-1. **`tests/conftest.py`**: isolate `STEM_HOME`; markers; music assert helpers.
-2. **Capability matrix** checked in (tool × mock/live/test).
-3. **`tests/test_beat_mvp.py`**: house beat recipe on MockBridge + StemScript twin.
-4. **Live smoke script** + fix untrusted tempo/sample_rate reads (or mark untrusted).
-5. **Tool coverage gate** so new tools cannot land bare.
-6. Only then start M2 sample index MVP.
+1. ~~**`tests/conftest.py`**: isolate `STEM_HOME`; markers; music assert helpers.~~ **done**
+2. ~~**Capability matrix** checked in (tool × mock/live/test).~~ **done** (`CAPABILITY_MATRIX.md`)
+3. ~~**`tests/test_beat_mvp.py`**: house beat recipe on MockBridge + StemScript twin.~~ **done**
+4. ~~**Live smoke script** + fix untrusted tempo/sample_rate reads (or mark untrusted).~~ **done**
+5. ~~**Tool coverage gate** so new tools cannot land bare.~~ **done**
+6. Only then start M2 sample index MVP. ← **next**
+
+Decision log: `DECISIONS.md`.
 
 ---
 

@@ -14,7 +14,8 @@ import uuid
 from pathlib import Path
 from typing import Optional
 
-OUTPUT_DIR = Path.home() / ".stem" / "generated"
+from ..paths import generated_dir
+
 ACE_STEP_DIR = os.environ.get("ACE_STEP_DIR", "")
 SUNO_API_KEY = os.environ.get("SUNO_API_KEY", "")
 
@@ -23,7 +24,6 @@ class GenerationService:
     """Facade over ACE-Step (local) and Suno (API)."""
 
     def __init__(self):
-        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
         self.ace_available = bool(ACE_STEP_DIR) and Path(ACE_STEP_DIR).exists()
         self.suno_available = bool(SUNO_API_KEY)
 
@@ -54,7 +54,7 @@ class GenerationService:
             "and acestep-env/), set SUNO_API_KEY, or set ELEVENLABS_API_KEY.")
 
     def _generate_ace_step(self, prompt: str, duration: float) -> str:
-        out = OUTPUT_DIR / f"ace_{uuid.uuid4().hex[:8]}.wav"
+        out = generated_dir() / f"ace_{uuid.uuid4().hex[:8]}.wav"
         # Adapted pipeline from ai-music-daw/backend/services/ace_step_service.py:
         # shell out to the acestep CLI inside its own venv so torch deps stay
         # isolated from the agent process.

@@ -18,8 +18,8 @@ from typing import List, Optional
 
 import httpx
 
-CONFIG = Path.home() / ".stem" / "config.json"
-OUTPUT_DIR = Path.home() / ".stem" / "generated"
+from ..paths import config_path, generated_dir
+
 API_URL = "https://api.elevenlabs.io/v1/music"
 STEM_URL = "https://api.elevenlabs.io/v1/music/stem-separation"
 
@@ -28,9 +28,10 @@ def _api_key() -> Optional[str]:
     key = os.environ.get("ELEVENLABS_API_KEY")
     if key:
         return key
-    if CONFIG.exists():
+    cfg = config_path()
+    if cfg.exists():
         try:
-            return json.loads(CONFIG.read_text()).get("elevenlabs_api_key")
+            return json.loads(cfg.read_text()).get("elevenlabs_api_key")
         except json.JSONDecodeError:
             return None
     return None
@@ -38,7 +39,7 @@ def _api_key() -> Optional[str]:
 
 class ElevenLabsMusic:
     def __init__(self):
-        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+        pass
 
     def available(self) -> bool:
         return bool(_api_key())
@@ -69,7 +70,7 @@ class ElevenLabsMusic:
         decoded WAV path."""
         key = self._require_key()
         headers = {"Content-Type": "application/json", "xi-api-key": key}
-        base = OUTPUT_DIR / f"eleven_{uuid.uuid4().hex[:8]}"
+        base = generated_dir() / f"eleven_{uuid.uuid4().hex[:8]}"
         encoded = base.with_suffix(".mp3")
         out = base.with_suffix(".wav")
         with httpx.Client(timeout=300.0) as client:
@@ -128,15 +129,16 @@ class ElevenLabsMusic:
             payload = resp.content
         stems: dict = {}
         prefix = src.stem
+        out_dir = generated_dir()
         with zipfile.ZipFile(io.BytesIO(payload)) as zf:
             for entry in zf.namelist():
                 if entry.endswith("/"):
                     continue
                 raw = zf.read(entry)
                 name = Path(entry).stem  # e.g. "vocals", "accompaniment"
-                enc = OUTPUT_DIR / f"{prefix}_{name}{Path(entry).suffix}"
+                enc = out_dir / f"{prefix}_{name}{Path(entry).suffix}"
                 enc.write_bytes(raw)
-                wav = OUTPUT_DIR / f"{prefix}_{name}.wav"
+                wav = out_dir / f"{prefix}_{name}.wav"
                 try:
                     self._decode_to_wav(enc, wav)
                     stems[name] = str(wav)

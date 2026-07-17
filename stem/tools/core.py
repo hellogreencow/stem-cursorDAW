@@ -39,7 +39,7 @@ class Empty(BaseModel):
                    Empty)
 def get_session_overview(args, ctx):
     s = ctx.bridge.get_session_overview()
-    return {
+    out = {
         "name": s.name, "tempo": s.tempo, "meter": s.meter,
         "playhead_seconds": s.playhead_seconds,
         "tracks": [{"track_id": t.track_id, "name": t.name, "kind": t.kind,
@@ -47,6 +47,10 @@ def get_session_overview(args, ctx):
                    for t in s.tracks],
         "markers": s.markers,
     }
+    untrusted = getattr(s, "untrusted_fields", None) or []
+    if untrusted:
+        out["untrusted_fields"] = list(untrusted)
+    return out
 
 
 class TrackRef(BaseModel):

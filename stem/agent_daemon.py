@@ -13,19 +13,21 @@ Run:  ./venv/bin/python -m stem.agent_daemon
 import json
 import time
 import traceback
-from pathlib import Path
 
 from .bridge.ardour import ArdourBridge
 from .agent.loop import StemAgent
+from .paths import ensure_stem_home
 from .tools import generation_tools  # noqa: F401 — registers extra tools
 
-STEM = Path.home() / ".stem"
-REQ = STEM / "chat_request.json"
-RESP = STEM / "chat_response.json"
+
+def _chat_paths():
+    stem = ensure_stem_home()
+    return stem / "chat_request.json", stem / "chat_response.json"
 
 
 def write_response(state: str, reply: str = "", activity=None, req_id=""):
-    RESP.write_text(json.dumps({
+    _, resp = _chat_paths()
+    resp.write_text(json.dumps({
         "id": req_id,
         "state": state,             # "thinking" | "done" | "error"
         "reply": reply,
@@ -34,19 +36,19 @@ def write_response(state: str, reply: str = "", activity=None, req_id=""):
 
 
 def main():
-    STEM.mkdir(exist_ok=True)
+    req_path, _ = _chat_paths()
     bridge = ArdourBridge(rpc_timeout=15.0)
-    agent = StemAgent(bridge)  # provider from ~/.stem/config.json
+    agent = StemAgent(bridge)  # provider from stem config.json
     print("Stem daemon: waiting for Ardour + chat messages…")
 
     last_id = None
     while True:
         try:
-            if not REQ.exists():
+            if not req_path.exists():
                 time.sleep(0.2)
                 continue
             try:
-                req = json.loads(REQ.read_text())
+                req = json.loads(req_path.read_text())
             except (json.JSONDecodeError, OSError):
                 time.sleep(0.1)
                 continue

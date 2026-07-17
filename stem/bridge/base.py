@@ -40,6 +40,9 @@ class SessionOverview:
     markers: list
     playhead_seconds: float
     snapshot_id: Optional[str] = None
+    # Fields where the live DAW returned absurd/unusable values that were
+    # replaced with defaults (see ArdourBridge sanitization). Empty on mock.
+    untrusted_fields: list = field(default_factory=list)
 
 
 class Bridge(ABC):
