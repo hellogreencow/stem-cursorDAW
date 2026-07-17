@@ -178,4 +178,5 @@ the smallest reliable CI surface. Matches EXECUTION_PLAN H6 intent.
 cassettes under `tests/fixtures/cassettes/`. Missing cassette in replay =
 hard fail (no silent network fallback).
 
-**Result:** (filled after tests)
+**Result:** Cassette replay + fixture WAV tests green without network/ffmpeg.
+`available()` is true under replay mode so tools do not short-circuit.
