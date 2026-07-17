@@ -20,6 +20,7 @@ from .agent.local_fallback import handle_local_intent
 from .paths import ensure_stem_home
 from .tools import generation_tools  # noqa: F401 — registers extra tools
 from .tools import ardour_tools  # noqa: F401 — registers ardour_help
+from .tools import sample_tools  # noqa: F401 — registers sample search/import
 from .tools.core import registry
 
 WEB_DIR = Path(__file__).parent / "web"

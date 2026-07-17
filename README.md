@@ -105,11 +105,18 @@ export ACE_STEP_DIR=~/Desktop/ai-music-daw   # has models/ + acestep-env/
 # or: export SUNO_API_KEY=...
 ```
 
+## Sample library
+
+```bash
+./venv/bin/python -m stem.index_samples ~/Samples   # builds ~/.stem/sample_index.json
+# then in chat: "find a dark snare and put it on the timeline"
+```
+
 ## Tests
 
 ```bash
 ./venv/bin/python -m pytest tests/ -q          # PR-fast suite (isolates STEM_HOME)
-STEM_LIVE=1 ./venv/bin/python scripts/live_smoke.py   # Phase 0 against live Ardour
+./venv/bin/python scripts/live_smoke.py        # Phase 0 against live Ardour
 ```
 
 Tests set `STEM_HOME` to a temp dir so they never touch `~/.stem`. Live smoke

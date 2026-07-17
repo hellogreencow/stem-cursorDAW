@@ -18,6 +18,7 @@ from .bridge.ardour import ArdourBridge
 from .agent.loop import StemAgent
 from .paths import ensure_stem_home
 from .tools import generation_tools  # noqa: F401 — registers extra tools
+from .tools import sample_tools  # noqa: F401 — registers sample search/import
 
 
 def _chat_paths():

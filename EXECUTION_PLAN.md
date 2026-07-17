@@ -487,9 +487,11 @@ Do these in order this week-shaped engineering slice (effort in subsystems, not 
 3. ~~**`tests/test_beat_mvp.py`**: house beat recipe on MockBridge + StemScript twin.~~ **done**
 4. ~~**Live smoke script** + fix untrusted tempo/sample_rate reads (or mark untrusted).~~ **done**
 5. ~~**Tool coverage gate** so new tools cannot land bare.~~ **done**
-6. Only then start M2 sample index MVP. ← **next**
+6. ~~Only then start M2 sample index MVP.~~ **done** (token search; embeddings later)
 
 Decision log: `DECISIONS.md`.
+
+**Next slice:** plugin load/param spike (M2.3) and/or generation cassettes (H6).
 
 ---
 

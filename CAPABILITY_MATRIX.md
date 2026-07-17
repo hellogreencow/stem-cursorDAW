@@ -32,11 +32,14 @@ Legend: **Y** = supported/proven · **P** = partial/stub · **N** = no · **—*
 | `generate_vocal_lines` | Y† | Y† | Y | |
 | `isolate_vocals` | Y† | Y† | Y | |
 | `get_generation_status` | Y | Y | Y | |
+| `search_samples` | Y | Y | Y | Token/metadata index (no embeddings yet) |
+| `import_sample` | Y | Y | Y | Uses bridge.import_audio |
+| `rebuild_sample_index` | Y | — | Y | Writes STEM_HOME/sample_index.json |
 
 \* Bridge ABC default / mock does not fully emulate engine audio.  
 † Import path works on mock; generation backend may be stubbed in tests.
 
-**Not started (Phase 2+):** `search_samples`, `load_plugin`, `set_plugin_param`,
-`get_playhead`, `get_selection`, proposal/preview accept.
+**Not started (Phase 2+):** embeddings/CLAP search, `load_plugin`,
+`set_plugin_param`, `get_playhead`, `get_selection`, proposal/preview accept.
 
-Last updated: 2026-07-17 (M0 harness slice).
+Last updated: 2026-07-17 (M0 harness + sample index MVP).

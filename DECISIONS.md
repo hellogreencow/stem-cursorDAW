@@ -121,3 +121,22 @@ pull httpx transitively.
 **Downstream:** Install docs unchanged; pip -r requirements now matches imports.
 
 **Result:** Applied.
+
+---
+
+## D008 — Sample search MVP = tokens, not embeddings (2026-07-17)
+
+**Decision:** Ship `search_samples` / `import_sample` / `rebuild_sample_index`
+with filename/path/tag token overlap scoring. Defer CLAP/embeddings.
+
+**Why:** Unblocks “find a snare / drop it” dogfood without model downloads.
+Embeddings can replace the scorer later behind the same tool schema.
+
+**Downstream:**
+- Index at `STEM_HOME/sample_index.json`
+- CLI: `python -m stem.index_samples <folder>`
+- Stable ids via sha1(path), not `hash()` (randomized per process)
+- Fixture library under `tests/fixtures/samples_lib/`
+
+**Result:** `80 passed, 7 skipped`. Search ranks `dark_snare_tight` for
+“dark snare”; import creates audio track on mock.
