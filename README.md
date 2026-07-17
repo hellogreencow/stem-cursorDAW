@@ -124,4 +124,5 @@ stem/
 tests/       vertical-slice + validation tests
 ```
 
-See PLAN.md for the roadmap and GAPS.md for known unknowns.
+See PLAN.md for the roadmap, EXECUTION_PLAN.md for the step-by-step path
+to Cursor-for-DAW (incl. testing harness), and GAPS.md for known unknowns.
