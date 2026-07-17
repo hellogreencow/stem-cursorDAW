@@ -229,7 +229,8 @@ and run via ScriptedProvider. No PyYAML dependency.
 predicates (tempo/tracks/notes), and reply substrings. Local-fallback goldens
 can be added as a second file type later.
 
-**Result:** (filled after tests)
+**Result:** Three goldens green (tempo/track, selection→propose, memory
+defaults). Runner supports ordered tool subsequences + session predicates.
 
 ---
 
@@ -249,4 +250,5 @@ makes it ambient for the model.
 - Never store API keys / tokens
 - Autonomy task modes still deferred
 
-**Result:** (filled after tests)
+**Result:** Second-session system prompt includes tempo/key; secrets redacted
+on disk; tools wired through ToolContext.project_id.
