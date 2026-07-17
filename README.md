@@ -112,6 +112,17 @@ export ACE_STEP_DIR=~/Desktop/ai-music-daw   # has models/ + acestep-env/
 # then in chat: "find a dark snare and put it on the timeline"
 ```
 
+## Generation (offline / CI)
+
+```bash
+# Copy a local WAV instead of calling ACE/Suno/ElevenLabs:
+STEM_GEN_FIXTURE_WAV=/path/to/pad.wav ./venv/bin/python -m stem.cli --mock
+
+# Replay a recorded ElevenLabs response (decoded WAV keyed by request body):
+STEM_CASSETTE_DIR=tests/fixtures/cassettes STEM_CASSETTE_MODE=replay \
+  ./venv/bin/python -m stem.cli --mock
+```
+
 ## Tests
 
 ```bash

@@ -140,3 +140,42 @@ Embeddings can replace the scorer later behind the same tool schema.
 
 **Result:** `80 passed, 7 skipped`. Search ranks `dark_snare_tight` for
 “dark snare”; import creates audio track on mock.
+
+---
+
+## D009 — Plugin control: bridge methods + mock fidelity first (2026-07-17)
+
+**Decision:** Add `list_plugins` / `load_plugin` / `get_plugin_params` /
+`set_plugin_param` as concrete Bridge methods (not ABC-breaking abstracts),
+with full MockBridge behavior, ArdourBridge RPC, and Lua handlers that use
+`LuaAPI.new_plugin` + `set/get_processor_param` behind `pcall`.
+
+**Why:** M2.3 spike must be dogfoodable on mock/CI; live Lua API variance is
+real (GAPS.md). Tools stay stable if Lua needs fixes later.
+
+**Downstream:**
+- Tool module `stem/tools/plugin_tools.py`
+- Contract tests assert Lua handler presence
+- Live param semantics may need iteration on real Ardour
+- Undo: mock snapshots plugin graphs; live relies on Ardour undo stack via
+  existing action_id sequencing after RPC
+
+**Result:** Mock tools green (list/load/get/set + undo + clamp). Lua handler
+contract asserts present. Live dogfood still required on a real Ardour box.
+
+---
+
+## D010 — Generation cassettes store decoded WAV, replay skips network (2026-07-17)
+
+**Decision:** `STEM_CASSETTE_DIR` + `STEM_CASSETTE_MODE=replay|record|off`.
+Replay copies a pre-recorded WAV keyed by sha1 of the request body — no HTTP,
+no ffmpeg in PR CI. Record mode (manual/nightly) writes after a live call.
+
+**Why:** VCR-of-mp3 still needs ffmpeg decode; storing the post-decode WAV is
+the smallest reliable CI surface. Matches EXECUTION_PLAN H6 intent.
+
+**Downstream:** ElevenLabs `_compose` checks cassettes first. Tests seed
+cassettes under `tests/fixtures/cassettes/`. Missing cassette in replay =
+hard fail (no silent network fallback).
+
+**Result:** (filled after tests)

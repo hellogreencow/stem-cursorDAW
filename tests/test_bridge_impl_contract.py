@@ -44,6 +44,16 @@ def test_live_bridge_uses_embedded_audio_import():
     assert "Editor:do_import" not in source
 
 
+def test_live_bridge_exposes_plugin_control_handlers():
+    source = BRIDGE_IMPL.read_text()
+    for name in ("list_plugins", "load_plugin", "get_plugin_params",
+                 "set_plugin_param"):
+        assert f"function handlers.{name}" in source, name
+    assert "ARDOUR.LuaAPI.new_plugin" in source
+    assert "ARDOUR.LuaAPI.set_processor_param" in source
+    assert "ARDOUR.LuaAPI.get_processor_param" in source
+
+
 def test_live_bridge_uses_native_tempo_helper():
     source = BRIDGE_IMPL.read_text()
     tempo_handler = source.split("function handlers.set_tempo", 1)[1].split(

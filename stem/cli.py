@@ -22,6 +22,7 @@ from .agent.local_fallback import handle_local_intent
 from .language import execute_stemscript, StemScriptError
 from .tools import generation_tools  # noqa: F401 (registers tools)
 from .tools import sample_tools  # noqa: F401 (registers sample search/import)
+from .tools import plugin_tools  # noqa: F401 (registers plugin load/param)
 
 
 def pick_bridge(argv):

@@ -10,6 +10,7 @@ ELEVENLABS_API_KEY env var.
 import io
 import json
 import os
+import shutil
 import subprocess
 import uuid
 import zipfile
@@ -19,6 +20,7 @@ from typing import List, Optional
 import httpx
 
 from ..paths import config_path, generated_dir
+from .cassettes import cassette_mode, cassette_path
 
 API_URL = "https://api.elevenlabs.io/v1/music"
 STEM_URL = "https://api.elevenlabs.io/v1/music/stem-separation"
@@ -42,7 +44,10 @@ class ElevenLabsMusic:
         pass
 
     def available(self) -> bool:
-        return bool(_api_key())
+        if _api_key():
+            return True
+        # Replay cassettes do not need a live key (D010).
+        return cassette_mode() == "replay" and bool(os.environ.get("STEM_CASSETTE_DIR"))
 
     def _require_key(self) -> str:
         key = _api_key()
@@ -67,7 +72,19 @@ class ElevenLabsMusic:
 
     def _compose(self, body: dict) -> str:
         """POST a /v1/music body (prompt OR composition_plan) and return the
-        decoded WAV path."""
+        decoded WAV path. Honors STEM_CASSETTE_DIR replay/record (D010)."""
+        mode = cassette_mode()
+        cpath = cassette_path(body)
+        if mode == "replay":
+            if cpath is None or not cpath.exists():
+                raise RuntimeError(
+                    f"cassette miss — expected {cpath}. Record with "
+                    "STEM_CASSETTE_MODE=record and a live API key, or seed the "
+                    "WAV under STEM_CASSETTE_DIR.")
+            out = generated_dir() / f"cassette_{cpath.stem}_{uuid.uuid4().hex[:6]}.wav"
+            shutil.copyfile(cpath, out)
+            return str(out)
+
         key = self._require_key()
         headers = {"Content-Type": "application/json", "xi-api-key": key}
         base = generated_dir() / f"eleven_{uuid.uuid4().hex[:8]}"
@@ -79,7 +96,11 @@ class ElevenLabsMusic:
                 raise RuntimeError(
                     f"ElevenLabs Music API {resp.status_code}: {resp.text[:300]}")
             encoded.write_bytes(resp.content)
-        return self._decode_to_wav(encoded, out)
+        wav = self._decode_to_wav(encoded, out)
+        if mode == "record" and cpath is not None:
+            cpath.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(wav, cpath)
+        return wav
 
     def generate(self, prompt: str, length_seconds: float = 20.0,
                  instrumental: bool = False, model: str = "music_v2") -> str:

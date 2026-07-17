@@ -9,7 +9,7 @@ generate_sample(prompt) -> path to a WAV on disk, ready for
 Bridge.import_audio() to drop onto a track.
 """
 import os
-import asyncio
+import shutil
 import uuid
 from pathlib import Path
 from typing import Optional
@@ -29,8 +29,10 @@ class GenerationService:
 
     def status(self) -> dict:
         from .elevenlabs_music import elevenlabs_music
+        fixture = bool(os.environ.get("STEM_GEN_FIXTURE_WAV"))
         return {"ace_step": self.ace_available, "suno": self.suno_available,
-                "elevenlabs_music": elevenlabs_music.available()}
+                "elevenlabs_music": elevenlabs_music.available(),
+                "fixture_wav": fixture}
 
     def generate_sample(self, prompt: str, duration_seconds: float = 8.0,
                         backend: Optional[str] = None) -> str:
@@ -38,7 +40,18 @@ class GenerationService:
 
         STUB until a backend is configured: raises with setup instructions
         rather than silently returning fake audio.
+
+        STEM_GEN_FIXTURE_WAV: copy a local WAV (CI / offline) without backends.
         """
+        fixture = os.environ.get("STEM_GEN_FIXTURE_WAV")
+        if fixture:
+            src = Path(fixture).expanduser()
+            if not src.exists():
+                raise RuntimeError(f"STEM_GEN_FIXTURE_WAV not found: {src}")
+            out = generated_dir() / f"fixture_{uuid.uuid4().hex[:8]}.wav"
+            shutil.copyfile(src, out)
+            return str(out)
+
         backend = backend or ("ace_step" if self.ace_available
                               else "suno" if self.suno_available
                               else "elevenlabs_music")

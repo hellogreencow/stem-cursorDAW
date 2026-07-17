@@ -35,11 +35,16 @@ Legend: **Y** = supported/proven · **P** = partial/stub · **N** = no · **—*
 | `search_samples` | Y | Y | Y | Token/metadata index (no embeddings yet) |
 | `import_sample` | Y | Y | Y | Uses bridge.import_audio |
 | `rebuild_sample_index` | Y | — | Y | Writes STEM_HOME/sample_index.json |
+| `list_plugins` | Y | Y | Y | Instruments + effects |
+| `load_plugin` | Y | Y | Y | Live Lua best-effort; mock proven |
+| `get_plugin_params` | Y | Y | Y | Live may vary by plugin binding |
+| `set_plugin_param` | Y | Y | Y | Undoable; clamps on mock |
 
 \* Bridge ABC default / mock does not fully emulate engine audio.  
 † Import path works on mock; generation backend may be stubbed in tests.
+  Cassettes: `STEM_CASSETTE_DIR` + `STEM_CASSETTE_MODE=replay`.
 
-**Not started (Phase 2+):** embeddings/CLAP search, `load_plugin`,
-`set_plugin_param`, `get_playhead`, `get_selection`, proposal/preview accept.
+**Not started (Phase 2+):** embeddings/CLAP search, `get_playhead`,
+`get_selection`, proposal/preview accept.
 
-Last updated: 2026-07-17 (M0 harness + sample index MVP).
+Last updated: 2026-07-17 (plugins M2.3 + generation cassettes H6).

@@ -120,3 +120,23 @@ class Bridge(ABC):
         Returns the list of tracks changed."""
         return {"ok": False, "fixed": [], "count": 0,
                 "note": "not supported by this bridge"}
+
+    # ---- plugins (M2; concrete defaults — bridges override) ----
+    def list_plugins(self, kind: Optional[str] = None) -> list:
+        """Catalog of plugins. kind: 'instrument' | 'effect' | None (all)."""
+        return []
+
+    def load_plugin(self, track_id: str, plugin_id: str,
+                    position: Optional[int] = None) -> str:
+        """Insert plugin on track; returns action_id."""
+        raise RuntimeError("load_plugin not supported by this bridge")
+
+    def get_plugin_params(self, track_id: str,
+                          plugin_index: int = 0) -> dict:
+        """Return params for the Nth plugin on a track."""
+        raise RuntimeError("get_plugin_params not supported by this bridge")
+
+    def set_plugin_param(self, track_id: str, param_id: str, value: float,
+                         plugin_index: int = 0) -> str:
+        """Set one plugin parameter; returns action_id."""
+        raise RuntimeError("set_plugin_param not supported by this bridge")

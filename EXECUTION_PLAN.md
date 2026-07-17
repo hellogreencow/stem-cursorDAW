@@ -491,7 +491,9 @@ Do these in order this week-shaped engineering slice (effort in subsystems, not 
 
 Decision log: `DECISIONS.md`.
 
-**Next slice:** plugin load/param spike (M2.3) and/or generation cassettes (H6).
+**Next slice:** ~~plugin load/param spike (M2.3)~~ **done** ·
+~~generation cassettes (H6)~~ **done** · next: live plugin dogfood + M3
+selection/preview, or soak fuzzer (H3).
 
 ---
 

@@ -321,3 +321,36 @@ class ArdourBridge(Bridge):
 
     def fix_silent_instruments(self) -> dict:
         return self._call("fix_silent_instruments", {})
+
+    # ---- plugins ----
+    def list_plugins(self, kind: Optional[str] = None) -> list:
+        args = {}
+        if kind:
+            args["kind"] = kind
+        return self._call("list_plugins", args).get("plugins", [])
+
+    def load_plugin(self, track_id: str, plugin_id: str,
+                    position: Optional[int] = None) -> str:
+        args = {"track_id": track_id, "plugin_id": plugin_id}
+        if position is not None:
+            args["position"] = position
+        r = self._call("load_plugin", args)
+        if r.get("error"):
+            raise RuntimeError(r["error"])
+        return self._record_action()
+
+    def get_plugin_params(self, track_id: str,
+                          plugin_index: int = 0) -> dict:
+        return self._call("get_plugin_params", {
+            "track_id": track_id, "plugin_index": plugin_index,
+        })
+
+    def set_plugin_param(self, track_id: str, param_id: str, value: float,
+                         plugin_index: int = 0) -> str:
+        r = self._call("set_plugin_param", {
+            "track_id": track_id, "plugin_index": plugin_index,
+            "param_id": param_id, "value": value,
+        })
+        if r.get("error"):
+            raise RuntimeError(r["error"])
+        return self._record_action()

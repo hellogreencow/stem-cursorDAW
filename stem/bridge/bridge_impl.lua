@@ -203,6 +203,199 @@ return function ()
         return { instruments = instrument_catalog() }
     end
 
+    -- Full plugin catalog (instruments + effects). kind: "instrument"|"effect"|nil
+    function handlers.list_plugins(args)
+        local want = args and args.kind or nil
+        local out = {}
+        local seen = {}
+        for info in ARDOUR.LuaAPI.list_plugins():iter() do
+            local is_inst = info:is_instrument()
+            local kind = is_inst and "instrument" or "effect"
+            if want == nil or want == kind then
+                local plugin_type = ARDOUR.PluginType.name(info.type)
+                local key = plugin_type .. ":" .. info.unique_id
+                if not seen[key] then
+                    seen[key] = true
+                    out[#out + 1] = {
+                        id = info.unique_id,
+                        name = info.name,
+                        creator = info.creator,
+                        category = info.category,
+                        type = plugin_type,
+                        kind = kind,
+                    }
+                end
+            end
+        end
+        table.sort(out, function(a, b)
+            return string.lower(a.name) < string.lower(b.name)
+        end)
+        return { plugins = out, count = #out }
+    end
+
+    local function find_plugin_info(plugin_id)
+        if not plugin_id or plugin_id == "" then return nil end
+        for info in ARDOUR.LuaAPI.list_plugins():iter() do
+            if info.unique_id == plugin_id or info.name == plugin_id then
+                return info
+            end
+        end
+        return nil
+    end
+
+    local function nth_insert(route, plugin_index)
+        -- Prefer an iterator when the binding exists; fall back to instrument@0.
+        local ok_iter, insert = pcall(function()
+            local idx = 0
+            for proc in route:each_processor() do
+                local ins = proc:to_insert()
+                if not ins:isnil() then
+                    if idx == plugin_index then return ins end
+                    idx = idx + 1
+                end
+            end
+            return nil
+        end)
+        if ok_iter and insert and not insert:isnil() then
+            return insert
+        end
+        if plugin_index == 0 then
+            local cur = route:the_instrument()
+            if cur and not cur:isnil() then
+                local ins = cur:to_insert()
+                if not ins:isnil() then return ins end
+            end
+        end
+        return nil
+    end
+
+    function handlers.load_plugin(args)
+        local route = find_route(args.track_id)
+        if not route or route:isnil() then
+            return { error = "track not found: " .. tostring(args.track_id) }
+        end
+        local info = find_plugin_info(args.plugin_id)
+        if not info or info:isnil() then
+            return { error = "plugin not found: " .. tostring(args.plugin_id) }
+        end
+        local proc = ARDOUR.LuaAPI.new_plugin(
+            Session, info.unique_id, info.type, "")
+        if not proc or proc:isnil() then
+            return { error = "failed to instantiate plugin: " .. tostring(args.plugin_id) }
+        end
+        local position = args.position
+        if position == nil then position = -1 end
+        local ok, err = pcall(function()
+            route:add_processor_by_index(proc, position, nil, true)
+        end)
+        if not ok then
+            return { error = "add_processor failed: " .. tostring(err) }
+        end
+        return {
+            ok = true,
+            track_id = args.track_id,
+            plugin_id = info.unique_id,
+            plugin_name = info.name,
+            kind = info:is_instrument() and "instrument" or "effect",
+        }
+    end
+
+    function handlers.get_plugin_params(args)
+        local route = find_route(args.track_id)
+        if not route or route:isnil() then
+            return { error = "track not found: " .. tostring(args.track_id) }
+        end
+        local plugin_index = tonumber(args.plugin_index) or 0
+        local insert = nth_insert(route, plugin_index)
+        if not insert or insert:isnil() then
+            return { error = "no plugin at index " .. tostring(plugin_index) }
+        end
+        local plugin = insert:plugin(0)
+        if plugin:isnil() then
+            return { error = "insert has no plugin(0)" }
+        end
+        local params = {}
+        local ok_count, count = pcall(function() return plugin:parameter_count() end)
+        if not ok_count or not count then
+            return {
+                track_id = args.track_id,
+                plugin_index = plugin_index,
+                plugin_id = plugin:unique_id(),
+                params = params,
+                note = "parameter_count unavailable on this plugin",
+            }
+        end
+        for i = 0, count - 1 do
+            local ok_d, desc = pcall(function() return plugin:parameter_descriptor(i) end)
+            local label = "param_" .. tostring(i)
+            local lo, hi = 0.0, 1.0
+            if ok_d and desc then
+                if desc.label then label = desc.label end
+                if desc.lower then lo = desc.lower end
+                if desc.upper then hi = desc.upper end
+            end
+            local ok_v, val = pcall(function()
+                return ARDOUR.LuaAPI.get_processor_param(insert, i)
+            end)
+            params[#params + 1] = {
+                id = tostring(i),
+                name = label,
+                min = lo,
+                max = hi,
+                value = (ok_v and val) or 0.0,
+            }
+        end
+        return {
+            track_id = args.track_id,
+            plugin_index = plugin_index,
+            plugin_id = plugin:unique_id(),
+            params = params,
+        }
+    end
+
+    function handlers.set_plugin_param(args)
+        local route = find_route(args.track_id)
+        if not route or route:isnil() then
+            return { error = "track not found: " .. tostring(args.track_id) }
+        end
+        local plugin_index = tonumber(args.plugin_index) or 0
+        local insert = nth_insert(route, plugin_index)
+        if not insert or insert:isnil() then
+            return { error = "no plugin at index " .. tostring(plugin_index) }
+        end
+        local param_id = args.param_id
+        local index = tonumber(param_id)
+        if index == nil then
+            -- Resolve by label if a name was passed instead of an index.
+            local got = handlers.get_plugin_params({
+                track_id = args.track_id, plugin_index = plugin_index,
+            })
+            if got.error then return got end
+            for _, p in ipairs(got.params or {}) do
+                if p.name == param_id or p.id == param_id then
+                    index = tonumber(p.id)
+                    break
+                end
+            end
+        end
+        if index == nil then
+            return { error = "unknown param: " .. tostring(param_id) }
+        end
+        local ok, err = pcall(function()
+            ARDOUR.LuaAPI.set_processor_param(insert, index, args.value)
+        end)
+        if not ok then
+            return { error = "set_processor_param failed: " .. tostring(err) }
+        end
+        return {
+            ok = true,
+            track_id = args.track_id,
+            plugin_index = plugin_index,
+            param_id = tostring(index),
+            value = args.value,
+        }
+    end
+
     local function find_instrument(instrument_id)
         if not instrument_id or instrument_id == "" then return nil end
         for info in ARDOUR.LuaAPI.list_plugins():iter() do
