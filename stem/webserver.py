@@ -24,6 +24,7 @@ from .tools import sample_tools  # noqa: F401 — registers sample search/import
 from .tools import plugin_tools  # noqa: F401 — registers plugin load/param
 from .tools import proposal_tools  # noqa: F401 — registers selection/proposals
 from .tools import memory_tools  # noqa: F401 — registers project memory
+from .tools import task_tools  # noqa: F401 — registers autonomous tasks
 from .tools.core import registry
 
 WEB_DIR = Path(__file__).parent / "web"

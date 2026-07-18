@@ -48,13 +48,16 @@ Legend: **Y** = supported/proven · **P** = partial/stub · **N** = no · **—*
 | `reject_proposal` | Y | Y† | Y | |
 | `recall_memory` | Y | — | Y | STEM_HOME/memory/*.json |
 | `update_memory` | Y | — | Y | Secrets redacted on write |
+| `list_tasks` | Y | — | Y | Autonomous mode catalog |
+| `run_task` | Y | Y* | Y | confirm=true required to execute |
 
 \* Bridge ABC default / mock does not fully emulate engine audio.  
 † Import path works on mock; generation backend may be stubbed in tests.
   Cassettes: `STEM_CASSETTE_DIR` + `STEM_CASSETTE_MODE=replay`.
   Proposals are Python-side on ArdourBridge (not piano-roll ghosts).
+  `run_task` uses the same tools on live; dogfood still recommended.
 
 **Not started (Phase 2+):** embeddings/CLAP search, piano-roll ghost preview,
-autonomous mix/arrange task modes (M4.2+).
+`match_reference_loudness`, analyze_audio depth (M4.3).
 
-Last updated: 2026-07-17 (H5 goldens + M4.1 memory).
+Last updated: 2026-07-18 (M4.2 tasks + pr-fast CI).

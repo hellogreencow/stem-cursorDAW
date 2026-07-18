@@ -135,12 +135,25 @@ Preferences persist under `~/.stem/memory/<project>.json` (or `$STEM_HOME`).
 The agent injects them into its system prompt and can `recall_memory` /
 `update_memory` explicitly.
 
+## Autonomous tasks
+
+```text
+list_tasks
+run_task task=arrange_loop_to_song          # preview only
+run_task task=arrange_loop_to_song confirm=true
+run_task task=rough_mix confirm=true
+```
+
+Destructive modes refuse to execute without `confirm=true`.
+
 ## Tests
 
 ```bash
-./venv/bin/python -m pytest tests/ -q -m "not nightly"   # PR-fast
-./venv/bin/python scripts/live_smoke.py                  # Phase 0 vs live Ardour
+./venv/bin/python -m pytest tests/ -q -m "not nightly and not live"  # PR-fast
+./venv/bin/python scripts/live_smoke.py                              # live Ardour
 ```
+
+CI: `.github/workflows/pr-fast.yml`
 
 Tests set `STEM_HOME` to a temp dir so they never touch `~/.stem`. Live smoke
 must use the default home (Lua still reads `~/.stem`). See `EXECUTION_PLAN.md`,

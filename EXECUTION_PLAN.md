@@ -267,9 +267,9 @@ If ghost notes are impossible without deep editor work: ship **diff list in pane
 2. Marketplace explicitly **after** reliability — stub interfaces only.
 
 ### M4 acceptance
-- [ ] Memory improves second-session defaults in a scripted test
-- [ ] One autonomous task (`arrange_loop_to_song` or `rough_mix`) completes on mock with verification checklist
-- [ ] Destructive actions require confirm; covered by test
+- [x] Memory improves second-session defaults in a scripted test
+- [x] One autonomous task (`arrange_loop_to_song` or `rough_mix`) completes on mock with verification checklist
+- [x] Destructive actions require confirm; covered by test
 
 ---
 
@@ -491,8 +491,9 @@ Do these in order this week-shaped engineering slice (effort in subsystems, not 
 
 Decision log: `DECISIONS.md`.
 
-**Next slice:** ~~H5 goldens + M4.1 memory~~ **done**.
-Next: M4.2 autonomous task mode spike, live dogfood, or CI workflow (`pr-fast`).
+**Next slice:** ~~M4.2 tasks + pr-fast CI~~ **done**.
+Next: live dogfood on Ardour, M4.3 analyze_audio, or panel wiring for
+confirm/proposals UX.
 
 ---
 

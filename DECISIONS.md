@@ -252,3 +252,22 @@ makes it ambient for the model.
 
 **Result:** Second-session system prompt includes tempo/key; secrets redacted
 on disk; tools wired through ToolContext.project_id.
+
+---
+
+## D015 — Autonomous tasks require explicit confirm=true (2026-07-18)
+
+**Decision:** `run_task` previews a plan when `confirm` is false/omitted; executes
+only when `confirm=true`. Modes: `arrange_loop_to_song`, `rough_mix`.
+
+**Why:** M4 acceptance — destructive multi-step ops must not fire on a single
+ambiguous chat turn. Matches “mandatory user confirm for destructive ops.”
+
+**Downstream:**
+- Deterministic executors (tool registry only), not free-form LLM loops
+- Step cap + verification checklist returned in the result
+- Allowed-tool subset enforced inside the executor
+- CI: `.github/workflows/pr-fast.yml` runs `pytest -m "not nightly and not live"`
+
+**Result:** Preview-without-confirm leaves session empty; arrange + rough_mix
+checklists green on mock; golden `arrange_task_confirm` passes; pr-fast workflow added.
