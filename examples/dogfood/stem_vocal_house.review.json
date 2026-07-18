@@ -1,0 +1,17 @@
+{
+  "path": "/tmp/stem-gen-home/generated/eleven_b7d266d7.wav",
+  "duration_seconds": 45.024,
+  "sample_rate": 48000,
+  "channels": 2,
+  "peak": 0.8605,
+  "rms": 0.1293,
+  "crest_db": 16.46,
+  "silence_ratio": 0.1832,
+  "loudness_score": 1.0,
+  "dynamics_score": 1.0,
+  "presence_score": 0.616,
+  "overall": 84.6,
+  "verdict": "pass",
+  "findings": [],
+  "improve_prompt_hints": []
+}

@@ -1,0 +1,8 @@
+Stem vocal dogfood (ElevenLabs Music)
+length_target_s=45.0
+attempts=1
+verdict=pass overall=84.6
+findings=[]
+output=stem_vocal_house.wav
+Rebuild: ELEVENLABS_API_KEY=… python scripts/generate_and_review_song.py
+NOTE: API key must never be committed.

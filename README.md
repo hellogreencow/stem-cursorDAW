@@ -137,10 +137,14 @@ The agent injects them into its system prompt and can `recall_memory` /
 
 ## Dogfood listen
 
-A playable offline sketch lives at
-[`examples/dogfood/stem_f_minor_house.wav`](examples/dogfood/stem_f_minor_house.wav)
-(F minor house, StemScript + arrange task → simple synth render). Rebuild with
-`python scripts/render_mock_song.py`.
+**With vocals:** [`examples/dogfood/stem_vocal_house.wav`](examples/dogfood/stem_vocal_house.wav)
+(ElevenLabs Music + listen/review harness). Rebuild:
+`ELEVENLABS_API_KEY=… python scripts/generate_and_review_song.py`
+
+**Offline synth sketch:** [`examples/dogfood/stem_f_minor_house.wav`](examples/dogfood/stem_f_minor_house.wav)
+via `python scripts/render_mock_song.py`.
+
+Never commit API keys. If a key was pasted into chat, rotate it.
 
 ## Autonomous tasks
 

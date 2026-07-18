@@ -287,3 +287,20 @@ playable from GitHub. Provenance stays on the Stem tool stack, not a random file
 `generate_song` remains the path once keys exist locally.
 
 **Result:** 24s / ~4.2MB WAV committed under examples/dogfood/.
+
+---
+
+## D017 — Listen harness gates vocal dogfood; keys never in git (2026-07-18)
+
+**Decision:** Add `review_audio` / `improve_song_prompt` + 
+`scripts/generate_and_review_song.py`. Commit WAVs + review JSON only.
+API keys stay in env / local `.env` (gitignored).
+
+**Why:** “Make better” needs a falsifiable listen loop, not vibes. Oli shared a
+key in chat — use once for generation, warn to rotate, never commit.
+
+**Downstream:** Agent can generate → review → improve prompt → regenerate.
+CI tests harness on fixtures without network.
+
+**Result:** Vocal track passed listen harness on attempt 1 (overall 84.6,
+45s). Artifacts under examples/dogfood/; key not committed.

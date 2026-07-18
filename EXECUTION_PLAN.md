@@ -491,9 +491,9 @@ Do these in order this week-shaped engineering slice (effort in subsystems, not 
 
 Decision log: `DECISIONS.md`.
 
-**Next slice:** ~~M4.2 tasks + pr-fast CI~~ **done**.
-Next: live dogfood on Ardour, M4.3 analyze_audio, or panel wiring for
-confirm/proposals UX.
+**Next slice:** ~~vocal dogfood + listen harness (M4.3-ish)~~ **done**.
+Next: live Ardour dogfood, panel UX for confirm/proposals, embeddings search,
+or reference loudness compare.
 
 ---
 

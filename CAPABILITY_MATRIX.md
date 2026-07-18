@@ -50,6 +50,8 @@ Legend: **Y** = supported/proven · **P** = partial/stub · **N** = no · **—*
 | `update_memory` | Y | — | Y | Secrets redacted on write |
 | `list_tasks` | Y | — | Y | Autonomous mode catalog |
 | `run_task` | Y | Y* | Y | confirm=true required to execute |
+| `review_audio` | Y | — | Y | Listen harness: loudness/dynamics/presence |
+| `improve_song_prompt` | Y | — | Y | Uses review hints for regen |
 
 \* Bridge ABC default / mock does not fully emulate engine audio.  
 † Import path works on mock; generation backend may be stubbed in tests.
@@ -58,6 +60,6 @@ Legend: **Y** = supported/proven · **P** = partial/stub · **N** = no · **—*
   `run_task` uses the same tools on live; dogfood still recommended.
 
 **Not started (Phase 2+):** embeddings/CLAP search, piano-roll ghost preview,
-`match_reference_loudness`, analyze_audio depth (M4.3).
+`match_reference_loudness` vs reference track.
 
-Last updated: 2026-07-18 (M4.2 tasks + pr-fast CI).
+Last updated: 2026-07-18 (vocal dogfood + audio review harness).
