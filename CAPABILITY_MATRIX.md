@@ -26,9 +26,12 @@ Legend: **Y** = supported/proven · **P** = partial/stub · **N** = no · **—*
 | `insert_bassline` | Y | Y | Y | |
 | `ardour_help` | — | — | Y | KB lookup, no DAW mutate |
 | `generate_sample` | Y† | Y† | Y | Needs backend or monkeypatch |
-| `generate_song` | Y† | Y† | Y | ElevenLabs |
-| `generate_song_stems` | Y† | Y† | Y | |
-| `generate_vocals` | Y† | Y† | Y | |
+| `produce_instrumental` | Y | Y | Y | Stem owns the bed (MIDI) |
+| `analyze_instrumental` | Y | Y | Y | Ready-for-vocals gate |
+| `overlay_vocals` | Y† | Y† | Y | Isolated vocal on Stem bed |
+| `generate_song` | Y† | Y† | Y | GATED — opt-in only |
+| `generate_song_stems` | Y† | Y† | Y | GATED — opt-in only |
+| `generate_vocals` | Y† | Y† | Y | Prefer overlay_vocals |
 | `generate_vocal_lines` | Y† | Y† | Y | |
 | `isolate_vocals` | Y† | Y† | Y | |
 | `get_generation_status` | Y | Y | Y | |
@@ -62,4 +65,4 @@ Legend: **Y** = supported/proven · **P** = partial/stub · **N** = no · **—*
 **Not started (Phase 2+):** embeddings/CLAP search, piano-roll ghost preview,
 `match_reference_loudness` vs reference track.
 
-Last updated: 2026-07-18 (vocal dogfood + audio review harness).
+Last updated: 2026-07-18 (Stem-first produce; external full-song gated).

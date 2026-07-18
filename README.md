@@ -135,6 +135,19 @@ Preferences persist under `~/.stem/memory/<project>.json` (or `$STEM_HOME`).
 The agent injects them into its system prompt and can `recall_memory` /
 `update_memory` explicitly.
 
+## Produce the track (Stem owns the song)
+
+```text
+produce_instrumental style=house key=F is_minor=true bars=16
+analyze_instrumental          # when you're happy with the bed
+overlay_vocals prompt="…" lyrics="…"
+```
+
+Any style / chords / progression → Stem MIDI tools. Vocals are optional and
+second. `generate_song` / `generate_song_stems` are **blocked by default**
+(opt-in only via `allow_external_full_song=true` or
+`STEM_ALLOW_EXTERNAL_FULL_SONG=1`).
+
 ## Dogfood listen
 
 **Stem track + vocals:** [`examples/dogfood/stem_vocal_house.wav`](examples/dogfood/stem_vocal_house.wav)

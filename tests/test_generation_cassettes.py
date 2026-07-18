@@ -52,6 +52,7 @@ def test_cassette_replay_generate_song(monkeypatch, tmp_path, mock_ctx):
         "prompt": "cassette test hook",
         "length_seconds": 12,
         "instrumental": False,
+        "allow_external_full_song": True,
     }, mock_ctx)
     assert "error" not in r
     assert any(mock_ctx.bridge.audio.values())

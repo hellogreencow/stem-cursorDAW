@@ -1,4 +1,11 @@
-"""Generation tools: text -> audio -> track."""
+"""Generation tools: text -> audio -> track.
+
+Policy: Stem produces the instrumental. ElevenLabs may supply isolated vocals
+as an overlay. Full-song / song+stems API calls are hard-gated unless the
+caller explicitly opts in (allow_external_full_song or
+STEM_ALLOW_EXTERNAL_FULL_SONG=1).
+"""
+import os
 import re
 from typing import List, Optional
 
@@ -7,6 +14,22 @@ from pydantic import BaseModel, Field
 from .registry import ToolRegistry
 from .core import registry
 from ..services.generation import generation_service
+
+
+_EXTERNAL_FULL_SONG_BLOCKED = (
+    "Blocked: Stem produces the song (produce_instrumental / StemScript / "
+    "arrange). External APIs must not replace the bed with a full song+vocals "
+    "mix. Workflow: produce_instrumental → analyze_instrumental → "
+    "overlay_vocals. To force the legacy ElevenLabs full-song path, pass "
+    "allow_external_full_song=true or set STEM_ALLOW_EXTERNAL_FULL_SONG=1."
+)
+
+
+def _external_full_song_allowed(flag: bool) -> bool:
+    if flag:
+        return True
+    env = os.environ.get("STEM_ALLOW_EXTERNAL_FULL_SONG", "").strip().lower()
+    return env in ("1", "true", "yes", "on")
 
 
 def _provider_safe_vocal_prompt(prompt: str, lyrics: Optional[str] = None) -> str:
@@ -62,23 +85,29 @@ def generate_sample(args, ctx):
 
 
 class GenerateSong(BaseModel):
-    prompt: str = Field(description="Song/vocal description, e.g. 'a soulful "
-                                    "female vocal hook over warm chords' or "
-                                    "'energetic rap verse, trap beat'")
+    prompt: str = Field(description="LEGACY only. Prefer produce_instrumental. "
+                                    "Song description for external full mix.")
     length_seconds: float = Field(default=20.0, gt=3, le=120,
                                   description="Clip length in seconds")
     instrumental: bool = Field(default=False,
                                description="True for no vocals (backing only)")
     position_seconds: float = Field(default=0.0, ge=0)
+    allow_external_full_song: bool = Field(
+        default=False,
+        description="Required opt-in. Stem owns production; leave false.")
 
 
 @registry.register(
     "generate_song",
-    "Generate a produced song or sung vocal hook (real vocals, ElevenLabs "
-    "Music) from a text description and import it as a new audio track. "
-    "Use this for VOCALS / full musical audio — not for MIDI. Undoable.",
+    "LEGACY / GATED: external full-song mix (ElevenLabs). Blocked by default. "
+    "Stem must produce the instrumental via produce_instrumental; use "
+    "overlay_vocals for singing. Only call with allow_external_full_song=true "
+    "when the user explicitly demands an external full song. Undoable.",
     GenerateSong, mutates=True)
 def generate_song(args, ctx):
+    if not _external_full_song_allowed(args.allow_external_full_song):
+        return {"error": _EXTERNAL_FULL_SONG_BLOCKED,
+                "use_instead": ["produce_instrumental", "overlay_vocals"]}
     from ..services.elevenlabs_music import elevenlabs_music
     if not elevenlabs_music.available():
         return {"error": "ElevenLabs not configured — set ELEVENLABS_API_KEY "
@@ -87,25 +116,31 @@ def generate_song(args, ctx):
                                      args.instrumental)
     action_id = ctx.bridge.import_audio("", path, args.position_seconds)
     return {"action_id": action_id, "file": path,
-            "length_seconds": args.length_seconds}
+            "length_seconds": args.length_seconds,
+            "warning": "external full-song path — Stem did not produce this bed"}
 
 
 class GenerateSongStems(BaseModel):
-    prompt: str = Field(description="Song description. The generated song is "
-                                    "split into separate vocal and backing "
-                                    "audio tracks for arranging in the DAW.")
+    prompt: str = Field(description="LEGACY only. Prefer produce_instrumental "
+                                    "+ overlay_vocals.")
     length_seconds: float = Field(default=20.0, gt=3, le=120)
     position_seconds: float = Field(default=0.0, ge=0)
+    allow_external_full_song: bool = Field(
+        default=False,
+        description="Required opt-in. Stem owns production; leave false.")
 
 
 @registry.register(
     "generate_song_stems",
-    "Generate a produced song idea, split it into VOCALS and BACKING, and "
-    "import both stems as separate audio tracks. Use when the user wants a "
-    "vocal that can sit on top of generated instruments/backing rather than a "
-    "single baked full mix. Undoable.",
+    "LEGACY / GATED: external song then split into VOCALS + BACKING. Blocked "
+    "by default — that still lets the API invent the instrumental. Prefer "
+    "produce_instrumental then overlay_vocals. Opt in only with "
+    "allow_external_full_song=true.",
     GenerateSongStems, mutates=True)
 def generate_song_stems(args, ctx):
+    if not _external_full_song_allowed(args.allow_external_full_song):
+        return {"error": _EXTERNAL_FULL_SONG_BLOCKED,
+                "use_instead": ["produce_instrumental", "overlay_vocals"]}
     from ..services.elevenlabs_music import elevenlabs_music
     if not elevenlabs_music.available():
         return {"error": "ElevenLabs not configured — set ELEVENLABS_API_KEY "
@@ -149,11 +184,10 @@ class GenerateVocals(BaseModel):
 
 @registry.register(
     "generate_vocals",
-    "Generate ISOLATED vocals (just the singing voice, no backing). Generates "
-    "a vocal-forward clip with ElevenLabs, then runs stem separation and keeps "
-    "ONLY the vocal stem, importing it to its own track. Use when the user "
-    "wants an acapella / vocal-only line or hook. NOTE: the melody is chosen by "
-    "the model — this cannot sing a specific user-provided melody.",
+    "Generate ISOLATED vocals (singing voice only — no instrumental). Prefer "
+    "overlay_vocals after produce_instrumental. Generates a vocal-forward clip, "
+    "stem-separates, keeps ONLY the vocal stem. Does NOT produce the song bed. "
+    "Melody is model-chosen — cannot sing a specific user melody.",
     GenerateVocals, mutates=True)
 def generate_vocals(args, ctx):
     from ..services.elevenlabs_music import elevenlabs_music

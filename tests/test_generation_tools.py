@@ -58,7 +58,8 @@ def test_generate_song_imports_full_mix_as_audio_track(monkeypatch, tmp_path):
                         lambda prompt, length, instrumental: str(song))
 
     r = run(ctx, "generate_song", prompt="soulful hook",
-            length_seconds=12, instrumental=False)
+            length_seconds=12, instrumental=False,
+            allow_external_full_song=True)
 
     assert "error" not in r
     assert r["file"] == str(song)
@@ -83,7 +84,7 @@ def test_generate_song_stems_imports_vocal_and_backing(monkeypatch, tmp_path):
                         })
 
     r = run(ctx, "generate_song_stems", prompt="soulful hook",
-            length_seconds=8)
+            length_seconds=8, allow_external_full_song=True)
 
     assert "error" not in r
     assert r["full_mix"] == str(full)

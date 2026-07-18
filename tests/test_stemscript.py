@@ -52,22 +52,28 @@ def test_stemscript_compiles_to_undoable_tracks():
     assert "insert_midi_notes" in calls
 
 
-def test_stemscript_song_uses_song_generation(monkeypatch, tmp_path):
+def test_stemscript_song_builds_stem_instrumental_not_external_api(monkeypatch,
+                                                                  tmp_path):
     ctx = ToolContext(bridge=MockBridge())
-    song = tmp_path / "song.wav"
-    song.write_bytes(b"RIFFsong")
-    monkeypatch.setattr(elevenlabs_music, "available", lambda: True)
-    monkeypatch.setattr(elevenlabs_music, "generate",
-                        lambda prompt, length, instrumental: str(song))
+    seen = []
 
     reply = execute_stemscript("""
     stem:
+    tempo 128
+    key C major
     duration 12s
     song "party rock anthem with a massive chorus"
-    """, ctx)
+    """, ctx, lambda kind, payload: seen.append((kind, payload)))
 
-    assert "generated a song" in reply
-    assert any(items == [(str(song), 0.0)] for items in ctx.bridge.audio.values())
+    assert "Stem produced the instrumental" in reply
+    assert "party rock anthem" in reply
+    overview = ctx.bridge.get_session_overview()
+    midi = [t for t in overview.tracks if t.kind == "midi"]
+    assert len(midi) >= 3
+    calls = [e[1]["name"] for e in seen if e[0] == "tool_call"]
+    assert "generate_song" not in calls
+    assert "insert_chord_progression" in calls or "insert_chord" in calls
+    assert not any(ctx.bridge.audio.values())  # no external full-song import
 
 
 def test_stemscript_detection_requires_script_shape():

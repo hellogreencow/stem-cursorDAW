@@ -19,7 +19,8 @@ class ReviewAudio(BaseModel):
     "review_audio",
     "Listen/analyze a WAV (loudness, dynamics, silence, midband presence) and "
     "return a pass/revise/fail verdict with concrete improve-prompt hints. "
-    "Use after generate_song / import_audio before declaring the song done.",
+    "Use after produce_instrumental / overlay_vocals / import_audio before "
+    "declaring the song done.",
     ReviewAudio)
 def review_audio(args, ctx):
     review = review_wav(
@@ -43,8 +44,8 @@ class ImproveSongPrompt(BaseModel):
 
 @registry.register(
     "improve_song_prompt",
-    "Rewrite a song generation prompt using audio-review hints so the next "
-    "generate_song call is more likely to pass the listen harness.",
+    "Rewrite a vocal/overlay prompt using audio-review hints so the next "
+    "overlay_vocals call is more likely to pass the listen harness.",
     ImproveSongPrompt)
 def improve_song_prompt(args, ctx):
     if args.review_path:

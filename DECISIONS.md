@@ -322,3 +322,24 @@ old `generate_and_review_song.py` forwards to the correct script.
 
 **Result:** Regenerated mix passed review (overall 86.6). Instrumental +
 vocals-only + final mix committed; docs/agent prompt corrected.
+
+---
+
+## D019 — Stem produces the song; API vocals are overlay-only (2026-07-18)
+
+**Decision:** Canonical workflow is `produce_instrumental` → (producer happy) →
+`analyze_instrumental` → `overlay_vocals`. Hard-gate `generate_song` /
+`generate_song_stems` behind `allow_external_full_song=true` or
+`STEM_ALLOW_EXTERNAL_FULL_SONG=1`. Local fallback + StemScript `song:` no longer
+call the external full-song path.
+
+**Why:** Oli's product essence: producers make any style/chords/progression in
+Stem. External APIs must not invent the song. Vocals are optional and second.
+
+**Downstream:**
+- Tools: `produce_instrumental`, `analyze_instrumental`, `overlay_vocals`
+- Agent SYSTEM prompt states the core principle
+- Legacy full-song tools remain for cassette/debug with explicit opt-in
+
+**Result:** Unit tests prove block-by-default + Stem produce path for
+“make me a party rock anthem” / StemScript `song:`.
