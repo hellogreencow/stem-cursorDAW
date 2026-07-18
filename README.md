@@ -135,6 +135,13 @@ Preferences persist under `~/.stem/memory/<project>.json` (or `$STEM_HOME`).
 The agent injects them into its system prompt and can `recall_memory` /
 `update_memory` explicitly.
 
+## Dogfood listen
+
+A playable offline sketch lives at
+[`examples/dogfood/stem_f_minor_house.wav`](examples/dogfood/stem_f_minor_house.wav)
+(F minor house, StemScript + arrange task → simple synth render). Rebuild with
+`python scripts/render_mock_song.py`.
+
 ## Autonomous tasks
 
 ```text

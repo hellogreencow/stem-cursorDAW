@@ -6,7 +6,9 @@ __pycache__/
 .env
 .env.*
 *.wav
+!examples/dogfood/*.wav
 *.mp3
+!examples/dogfood/*.mp3
 *.aiff
 *.flac
 *.dmg

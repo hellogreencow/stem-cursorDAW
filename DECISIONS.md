@@ -271,3 +271,19 @@ ambiguous chat turn. Matches “mandatory user confirm for destructive ops.”
 
 **Result:** Preview-without-confirm leaves session empty; arrange + rough_mix
 checklists green on mock; golden `arrange_task_confirm` passes; pr-fast workflow added.
+
+---
+
+## D016 — Offline synth dogfood WAV when gen APIs are absent (2026-07-18)
+
+**Decision:** Ship `examples/dogfood/stem_f_minor_house.wav` built via
+StemScript + `arrange_loop_to_song` + `scripts/render_mock_song.py`. Allowlist
+`examples/dogfood/*.wav` in `.gitignore`.
+
+**Why:** Cloud env has no ElevenLabs/ACE/Suno keys; Oli still needs something
+playable from GitHub. Provenance stays on the Stem tool stack, not a random file.
+
+**Downstream:** Quality is sketch-synth, not production vocals. Real
+`generate_song` remains the path once keys exist locally.
+
+**Result:** 24s / ~4.2MB WAV committed under examples/dogfood/.

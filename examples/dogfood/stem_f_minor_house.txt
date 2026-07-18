@@ -1,0 +1,8 @@
+Stem offline dogfood render
+Source: examples/dogfood/house_beat.stem + arrange_loop_to_song
+Backend: theory/tools → simple synth WAV (no ElevenLabs/ACE/Suno)
+tempo=124.0 tracks=7
+Ran StemScript: 9 bars in F minor at 124 BPM.
+arrange_ok=True checklist={'tempo_set': True, 'tracks_ready': True, 'notes_present': True, 'markers_present': True}
+file=stem_f_minor_house.wav
+Rebuild: python scripts/render_mock_song.py
