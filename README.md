@@ -148,6 +148,13 @@ second. `generate_song` / `generate_song_stems` are **blocked by default**
 (opt-in only via `allow_external_full_song=true` or
 `STEM_ALLOW_EXTERNAL_FULL_SONG=1`).
 
+Judge musically (not just loudness):
+
+```text
+judge_session style=house key=F is_minor=true
+# → pulse_locke / harmony_bach / form_abbey / intent_fit (+ mix_hygiene if WAV)
+```
+
 ## Dogfood listen
 
 **Stem track + vocals:** [`examples/dogfood/stem_vocal_house.wav`](examples/dogfood/stem_vocal_house.wav)

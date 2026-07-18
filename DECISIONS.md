@@ -343,3 +343,22 @@ Stem. External APIs must not invent the song. Vocals are optional and second.
 
 **Result:** Unit tests prove block-by-default + Stem produce path for
 “make me a party rock anthem” / StemScript `song:`.
+
+---
+
+## D020 — Music Greats Jury (rhythm-first, length-invariant) (2026-07-18)
+
+**Decision:** Ship minimalist jury v1: `stem/services/rhythm.py` +
+`stem/services/jury.py` + tool `judge_session`. Critics: `pulse_locke`,
+`harmony_bach`, `form_abbey`, `intent_fit`, `mix_hygiene` (wraps existing
+`review_audio`). Scores normalize by bars/beats, not seconds. Style weights
+route intent. `review_audio` stays mix hygiene only.
+
+**Why:** Loudness-only “pass 80.5” cannot catch ass songs. Rhythm must hold for
+4 bars or 64. Greatness is criteria oracles, not celebrity cosplay.
+
+**Downstream:** Dogfood writes `*.jury.json`; agent prompt prefers
+`judge_session` after produce. Later: more critics, acoustic onset path.
+
+**Result:** Tests cover meter recovery, length invariance, evil-twin weak-beat
+failure, produce→jury path.

@@ -25,6 +25,7 @@ from .tools import proposal_tools  # noqa: F401 — registers selection/proposal
 from .tools import memory_tools  # noqa: F401 — registers project memory
 from .tools import task_tools  # noqa: F401 — registers autonomous tasks
 from .tools import review_tools  # noqa: F401 — registers audio review
+from .tools import jury_tools  # noqa: F401 — registers music jury
 
 
 def _chat_paths():

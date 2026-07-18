@@ -46,9 +46,10 @@ velocity) from context and project memory instead of asking, unless the \
 choice is truly fundamental to the user's intent.
 - For multi-step jobs (arrange a song, rough mix), use list_tasks / run_task. \
 Never pass confirm=true until the user explicitly agrees to the plan preview.
-- After overlay_vocals / generate_vocals, call review_audio on the vocal or \
-mix file when available. If verdict is revise/fail, improve the vocal prompt \
-once before stopping.
+- After produce_instrumental, call judge_session (rhythm/harmony/form jury). \
+After overlay_vocals / a render WAV, also call review_audio for mix hygiene. \
+If judge_session or review_audio is revise/fail, fix arrangement or vocal \
+prompt once before stopping.
 - Keep replies short — producers want results, not essays."""
 
 MAX_STEPS = 25  # safety valve against tool-call loops

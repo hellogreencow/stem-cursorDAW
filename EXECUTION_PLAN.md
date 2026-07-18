@@ -350,6 +350,15 @@ Suggested `pytest.ini` markers: `live`, `nightly`, `slow`, `generation`, `dogfoo
 - `assert_undo_clears(bridge, track_id, action_id)`
 - `assert_session_equiv(a, b)` for overview+notes
 
+#### H7 Music Greats Jury (rhythm-first) — started 2026-07-18
+- `stem/services/rhythm.py`: onset → pulse/meter/per-bar groove (bar units)
+- `stem/services/jury.py`: critics `pulse_locke`, `harmony_bach`, `form_abbey`,
+  `intent_fit`, `mix_hygiene` + style weights
+- Tool: `judge_session` (optional WAV for hygiene)
+- Invariants: length invariance (4 vs 64 bars); evil-twin off-beat fails pulse
+- Dogfood: `*.jury.json` beside hygiene `*.review.json`
+- Next: acoustic onset path, lyric–prosody critic, denser style profiles
+
 #### H2 Tool exercise matrix
 - Auto-discover registered tools; ensure each has:
   - schema rejection test (garbage input)

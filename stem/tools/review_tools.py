@@ -17,10 +17,9 @@ class ReviewAudio(BaseModel):
 
 @registry.register(
     "review_audio",
-    "Listen/analyze a WAV (loudness, dynamics, silence, midband presence) and "
-    "return a pass/revise/fail verdict with concrete improve-prompt hints. "
-    "Use after produce_instrumental / overlay_vocals / import_audio before "
-    "declaring the song done.",
+    "Mix hygiene only: loudness, dynamics, silence, midband presence on a WAV. "
+    "For musical judgment (rhythm, harmony, form), prefer judge_session. "
+    "Use both after produce_instrumental / overlay_vocals when a render exists.",
     ReviewAudio)
 def review_audio(args, ctx):
     review = review_wav(

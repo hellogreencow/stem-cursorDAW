@@ -1,0 +1,93 @@
+{
+  "style": "party",
+  "verdict": "pass",
+  "overall": 91.2,
+  "rhythm": {
+    "tempo_bpm": 122.0,
+    "beats_per_bar": 4,
+    "bars": 16,
+    "onset_count": 336,
+    "pulse_confidence": 1.0,
+    "meter_confidence": 0.8353,
+    "downbeat_lock": 1.0,
+    "syncopation_mean": 0.3513,
+    "density_mean": 5.25,
+    "density_cv": 0.0292,
+    "residual_mean": 0.0,
+    "kick_one_lock": 0.8125
+  },
+  "critics": [
+    {
+      "id": "pulse_locke",
+      "score": 0.942736,
+      "blocking": false,
+      "findings": [],
+      "evidence": {
+        "downbeat_lock": 1.0,
+        "kick_one_lock": 0.8125,
+        "pulse_confidence": 1.0,
+        "meter_confidence": 0.8353,
+        "bars": 16
+      }
+    },
+    {
+      "id": "harmony_bach",
+      "score": 0.9772727272727273,
+      "blocking": false,
+      "findings": [],
+      "evidence": {
+        "melodic_notes": 176,
+        "non_diatonic": 4,
+        "diatonic_ratio": 0.9773
+      }
+    },
+    {
+      "id": "form_abbey",
+      "score": 0.8075,
+      "blocking": false,
+      "findings": [
+        "flat density across bars \u2014 little arrangement arc"
+      ],
+      "evidence": {
+        "density_cv": 0.0292,
+        "markers": 3,
+        "tracks": 4,
+        "bars": 16
+      }
+    },
+    {
+      "id": "intent_fit",
+      "score": 1.0,
+      "blocking": false,
+      "findings": [],
+      "evidence": {
+        "expected_tempo": 122,
+        "measured_tempo": 122.0,
+        "key": "A",
+        "is_minor": true,
+        "style": "party"
+      }
+    },
+    {
+      "id": "mix_hygiene",
+      "score": 0.805,
+      "blocking": false,
+      "findings": [],
+      "evidence": {
+        "overall": 80.5,
+        "verdict": "pass",
+        "path": "/workspace/examples/dogfood/stem_now_song.wav"
+      }
+    }
+  ],
+  "weights": {
+    "pulse_locke": 0.3,
+    "harmony_bach": 0.15,
+    "form_abbey": 0.2,
+    "intent_fit": 0.2,
+    "mix_hygiene": 0.15
+  },
+  "improve_hints": [
+    "[form_abbey] flat density across bars \u2014 little arrangement arc"
+  ]
+}

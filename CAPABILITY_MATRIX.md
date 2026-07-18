@@ -53,8 +53,9 @@ Legend: **Y** = supported/proven · **P** = partial/stub · **N** = no · **—*
 | `update_memory` | Y | — | Y | Secrets redacted on write |
 | `list_tasks` | Y | — | Y | Autonomous mode catalog |
 | `run_task` | Y | Y* | Y | confirm=true required to execute |
-| `review_audio` | Y | — | Y | Listen harness: loudness/dynamics/presence |
+| `review_audio` | Y | — | Y | Mix hygiene only |
 | `improve_song_prompt` | Y | — | Y | Uses review hints for regen |
+| `judge_session` | Y | Y | Y | Music Greats Jury (rhythm + critics) |
 
 \* Bridge ABC default / mock does not fully emulate engine audio.  
 † Import path works on mock; generation backend may be stubbed in tests.
@@ -65,4 +66,4 @@ Legend: **Y** = supported/proven · **P** = partial/stub · **N** = no · **—*
 **Not started (Phase 2+):** embeddings/CLAP search, piano-roll ghost preview,
 `match_reference_loudness` vs reference track.
 
-Last updated: 2026-07-18 (Stem-first produce; external full-song gated).
+Last updated: 2026-07-18 (Music Greats Jury: rhythm + critics).

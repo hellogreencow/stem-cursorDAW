@@ -20,9 +20,11 @@ from stem.agent.loop import ToolContext
 from stem.bridge.mock import MockBridge
 from stem.services.audio_review import review_wav
 from stem.services.elevenlabs_music import elevenlabs_music
+from stem.services.jury import judge_bridge, write_jury_json
 from stem.tools.core import registry
 from stem.tools import generation_tools  # noqa: F401
 from stem.tools import produce_tools  # noqa: F401
+from stem.tools import jury_tools  # noqa: F401
 from stem.tools.generation_tools import _provider_safe_vocal_prompt
 
 OUT_DIR = ROOT / "examples" / "dogfood"
@@ -96,11 +98,21 @@ def main() -> int:
         "ready_for_vocals": analysis.get("ready_for_vocals"),
     }, indent=2))
 
-    print("=== 2) Render Stem bed ===")
+    print("=== 2) Jury on Stem session (pre-render) ===")
+    jury = judge_bridge(
+        bridge, style="party", key="A", is_minor=True, expected_tempo=122)
+    write_jury_json(jury, OUT_DIR / "stem_now_song.jury.json")
+    print(json.dumps({
+        "verdict": jury.verdict, "overall": jury.overall,
+        "rhythm": jury.rhythm,
+        "critics": {c.id: round(c.score, 3) for c in jury.critics},
+    }, indent=2))
+
+    print("=== 3) Render Stem bed ===")
     render_mod.render(bridge, instrumental, seconds=DURATION)
     print(f"instrumental: {instrumental} ({instrumental.stat().st_size} bytes)")
 
-    print("=== 3) Vocal overlay (isolated stem only — one API call) ===")
+    print("=== 4) Vocal overlay (isolated stem only — one API call) ===")
     # Same path as overlay_vocals tool: generate vocal-forward → isolate stem.
     # Done here once so we do not pay for a second generation.
     if not analysis.get("ready_for_vocals"):
@@ -117,7 +129,7 @@ def main() -> int:
     bridge.import_audio("", str(vocals_out), 0.0)
     print(f"vocals: {vocals_out} ({vocals_out.stat().st_size} bytes)")
 
-    print("=== 4) Mix Stem bed + vocal overlay ===")
+    print("=== 5) Mix Stem bed + vocal overlay ===")
     mix_mod.mix_wavs(instrumental, vocals_out, final)
     review = review_wav(
         final, expect_vocals=True, min_duration=min(16.0, DURATION * 0.5))
@@ -125,8 +137,15 @@ def main() -> int:
     data["path"] = "examples/dogfood/stem_now_song.wav"
     (OUT_DIR / "stem_now_song.review.json").write_text(json.dumps(data, indent=2))
 
+    # Re-judge with mix hygiene on the final WAV
+    jury_final = judge_bridge(
+        bridge, style="party", key="A", is_minor=True, expected_tempo=122,
+        wav_path=str(final), expect_vocals=True,
+    )
+    write_jury_json(jury_final, OUT_DIR / "stem_now_song.jury.json")
+
     meta = {
-        "pipeline": "produce_instrumental + overlay_vocals",
+        "pipeline": "produce_instrumental + judge_session + overlay_vocals",
         "not": "full elevenlabs song",
         "instrumental": instrumental.name,
         "vocals": vocals_out.name,
@@ -138,6 +157,7 @@ def main() -> int:
             "progression": produced.get("progression"),
             "bars": produced.get("bars"),
         },
+        "jury": jury_final.to_dict(),
         "review": data,
     }
     (OUT_DIR / "stem_now_song.pipeline.json").write_text(json.dumps(meta, indent=2))

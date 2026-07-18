@@ -8,7 +8,10 @@ API mix as the product.
 
 ## Latest: `stem_now_song.wav`
 
-Made with the enforced pipeline: `produce_instrumental` (A minor Andalusian @ 122) → Stem synth bed → isolated vocal overlay → mix. Review **pass / 80.5**.
+Made with the enforced pipeline: `produce_instrumental` (A minor Andalusian @ 122) → `judge_session` → Stem synth bed → isolated vocal overlay → mix.
+
+- Hygiene review: `stem_now_song.review.json` (**pass / 80.5**)
+- Music jury: `stem_now_song.jury.json` (rhythm + critics; MIDI can pass while the synth still sounds sketchy — that split is intentional)
 
 Also: `stem_now_instrumental.wav`, `stem_now_vocals.wav`. Rebuild: `python scripts/make_song_now.py`.
 
