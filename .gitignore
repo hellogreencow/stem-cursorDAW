@@ -13,3 +13,4 @@ __pycache__/
 *.flac
 *.dmg
 *.crash
+*.s16.wav
