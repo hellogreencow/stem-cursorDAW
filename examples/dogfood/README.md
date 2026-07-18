@@ -6,6 +6,12 @@
 optional overlay after the bed is good. Never treat a full external song+vocals
 API mix as the product.
 
+## Latest: `stem_now_song.wav`
+
+Made with the enforced pipeline: `produce_instrumental` (A minor Andalusian @ 122) → Stem synth bed → isolated vocal overlay → mix. Review **pass / 80.5**.
+
+Also: `stem_now_instrumental.wav`, `stem_now_vocals.wav`. Rebuild: `python scripts/make_song_now.py`.
+
 ## Preferred listen: `stem_vocal_house.wav`
 
 **Pipeline (correct):**
