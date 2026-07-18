@@ -40,6 +40,9 @@ class SessionOverview:
     markers: list
     playhead_seconds: float
     snapshot_id: Optional[str] = None
+    # Fields where the live DAW returned absurd/unusable values that were
+    # replaced with defaults (see ArdourBridge sanitization). Empty on mock.
+    untrusted_fields: list = field(default_factory=list)
 
 
 class Bridge(ABC):
@@ -117,3 +120,55 @@ class Bridge(ABC):
         Returns the list of tracks changed."""
         return {"ok": False, "fixed": [], "count": 0,
                 "note": "not supported by this bridge"}
+
+    # ---- plugins (M2; concrete defaults — bridges override) ----
+    def list_plugins(self, kind: Optional[str] = None) -> list:
+        """Catalog of plugins. kind: 'instrument' | 'effect' | None (all)."""
+        return []
+
+    def load_plugin(self, track_id: str, plugin_id: str,
+                    position: Optional[int] = None) -> str:
+        """Insert plugin on track; returns action_id."""
+        raise RuntimeError("load_plugin not supported by this bridge")
+
+    def get_plugin_params(self, track_id: str,
+                          plugin_index: int = 0) -> dict:
+        """Return params for the Nth plugin on a track."""
+        raise RuntimeError("get_plugin_params not supported by this bridge")
+
+    def set_plugin_param(self, track_id: str, param_id: str, value: float,
+                         plugin_index: int = 0) -> str:
+        """Set one plugin parameter; returns action_id."""
+        raise RuntimeError("set_plugin_param not supported by this bridge")
+
+    # ---- context / proposals (M3; concrete defaults) ----
+    def get_playhead(self) -> float:
+        return self.get_session_overview().playhead_seconds
+
+    def get_selection(self) -> dict:
+        """What the user is focused on: tracks, time range, regions."""
+        return {"track_ids": [], "region_ids": [],
+                "start_seconds": None, "end_seconds": None,
+                "supported": False}
+
+    def set_selection(self, track_ids: Optional[list] = None,
+                      start_seconds: Optional[float] = None,
+                      end_seconds: Optional[float] = None,
+                      region_ids: Optional[list] = None) -> dict:
+        raise RuntimeError("set_selection not supported by this bridge")
+
+    def propose_midi_notes(self, track_id: str, notes: list,
+                           start_beat: float = 0.0,
+                           summary: str = "") -> str:
+        """Stage notes for accept/reject review; returns proposal_id."""
+        raise RuntimeError("propose_midi_notes not supported by this bridge")
+
+    def list_proposals(self) -> list:
+        return []
+
+    def accept_proposal(self, proposal_id: str) -> str:
+        """Commit a pending proposal; returns action_id of the insert."""
+        raise RuntimeError("accept_proposal not supported by this bridge")
+
+    def reject_proposal(self, proposal_id: str) -> bool:
+        raise RuntimeError("reject_proposal not supported by this bridge")

@@ -90,37 +90,44 @@ def test_local_isolated_vocals(monkeypatch, tmp_path):
     assert any(items == [(str(vocal), 0.0)] for items in ctx.bridge.audio.values())
 
 
-def test_local_full_song(monkeypatch, tmp_path):
+def test_local_full_song_uses_stem_produce_then_overlay(monkeypatch, tmp_path):
     ctx = ToolContext(bridge=MockBridge())
-    song = tmp_path / "song.wav"
-    song.write_bytes(b"RIFFsong")
+    full = tmp_path / "full.wav"
+    vocal = tmp_path / "vocal.wav"
+    full.write_bytes(b"RIFFfull")
+    vocal.write_bytes(b"RIFFvocal")
     monkeypatch.setattr(elevenlabs_music, "available", lambda: True)
     monkeypatch.setattr(elevenlabs_music, "generate",
-                        lambda prompt, length, instrumental: str(song))
+                        lambda prompt, length, instrumental: str(full))
+    monkeypatch.setattr(elevenlabs_music, "isolate_vocals",
+                        lambda path: str(vocal))
+    seen, emit = events()
 
     reply = handle_local_intent(
         "generate a full song with vocals, soulful hook, 5 seconds",
-        ctx)
+        ctx, emit)
 
-    assert "song with vocals" in reply.lower()
-    assert any(items == [(str(song), 0.0)] for items in ctx.bridge.audio.values())
+    assert "stem produced" in reply.lower()
+    assert "not an external full-song" in reply.lower()
+    calls = [e[1]["name"] for e in seen if e[0] == "tool_call"]
+    assert "produce_instrumental" in calls
+    assert "overlay_vocals" in calls
+    assert "generate_song" not in calls
+    assert any(items == [(str(vocal), 0.0)] for items in ctx.bridge.audio.values())
 
 
-def test_local_separated_song_stems(monkeypatch, tmp_path):
+def test_local_separated_song_stems_uses_stem_bed_plus_overlay(monkeypatch,
+                                                              tmp_path):
     ctx = ToolContext(bridge=MockBridge())
     full = tmp_path / "song.wav"
     vocal = tmp_path / "vocals.wav"
-    backing = tmp_path / "backing.wav"
-    for p in (full, vocal, backing):
+    for p in (full, vocal):
         p.write_bytes(b"RIFF")
     monkeypatch.setattr(elevenlabs_music, "available", lambda: True)
     monkeypatch.setattr(elevenlabs_music, "generate",
                         lambda prompt, length, instrumental: str(full))
-    monkeypatch.setattr(elevenlabs_music, "separate_stems",
-                        lambda path: {
-                            "vocals": str(vocal),
-                            "accompaniment": str(backing),
-                        })
+    monkeypatch.setattr(elevenlabs_music, "isolate_vocals",
+                        lambda path: str(vocal))
     seen, emit = events()
 
     reply = handle_local_intent(
@@ -128,12 +135,12 @@ def test_local_separated_song_stems(monkeypatch, tmp_path):
         "voice on top of the backing, 4 seconds",
         ctx, emit)
 
-    assert "separate vocal and backing" in reply.lower()
-    assert any(e[1]["name"] == "generate_song_stems" for e in seen
-               if e[0] == "tool_call")
-    imported = list(ctx.bridge.audio.values())
-    assert [(str(vocal), 0.0)] in imported
-    assert [(str(backing), 0.0)] in imported
+    assert "stem produced the instrumental" in reply.lower()
+    calls = [e[1]["name"] for e in seen if e[0] == "tool_call"]
+    assert "produce_instrumental" in calls
+    assert "overlay_vocals" in calls
+    assert "generate_song_stems" not in calls
+    assert any(items == [(str(vocal), 0.0)] for items in ctx.bridge.audio.values())
 
 
 def test_local_vocal_on_existing_instruments_uses_isolated_vocal(monkeypatch, tmp_path):
@@ -155,7 +162,8 @@ def test_local_vocal_on_existing_instruments_uses_isolated_vocal(monkeypatch, tm
 
     assert "existing instruments" in reply.lower()
     calls = [e[1]["name"] for e in seen if e[0] == "tool_call"]
-    assert calls == ["get_session_overview", "generate_vocals"]
+    assert "overlay_vocals" in calls
+    assert "generate_song" not in calls
     assert any(items == [(str(vocal), 0.0)] for items in ctx.bridge.audio.values())
 
 
@@ -262,8 +270,10 @@ def test_local_add_fitting_vocals_and_slow_minute_wins_over_backing(monkeypatch,
     assert ctx.bridge.tempo == 90
     assert any(items == [(str(vocal), 0.0)] for items in ctx.bridge.audio.values())
     calls = [e[1]["name"] for e in seen if e[0] == "tool_call"]
-    assert "generate_vocals" in calls
-    assert calls.index("generate_vocals") > calls.index("insert_drum_pattern")
+    # Fitting-vocals path still uses generate_vocals after Stem bed arrange
+    assert "generate_vocals" in calls or "overlay_vocals" in calls
+    vocal_call = "overlay_vocals" if "overlay_vocals" in calls else "generate_vocals"
+    assert calls.index(vocal_call) > calls.index("insert_drum_pattern")
 
 
 def test_local_retro_platformer_theme_stays_local_and_original():
@@ -312,21 +322,20 @@ def test_local_deep_house_bass_track_builds_full_arrangement():
     assert "generate_song" not in calls
 
 
-def test_local_party_rock_anthem_uses_song_generation(monkeypatch, tmp_path):
+def test_local_party_rock_anthem_uses_stem_produce(monkeypatch, tmp_path):
     ctx = ToolContext(bridge=MockBridge())
-    song = tmp_path / "anthem.wav"
-    song.write_bytes(b"RIFFsong")
-    monkeypatch.setattr(elevenlabs_music, "available", lambda: True)
-    monkeypatch.setattr(elevenlabs_music, "generate",
-                        lambda prompt, length, instrumental: str(song))
     seen, emit = events()
 
     reply = handle_local_intent("make me a party rock anthem", ctx, emit)
 
-    assert "song with vocals" in reply.lower()
-    assert any(items == [(str(song), 0.0)] for items in ctx.bridge.audio.values())
+    assert "stem produced" in reply.lower()
+    assert "instrumental" in reply.lower()
+    overview = ctx.bridge.get_session_overview()
+    midi = [t for t in overview.tracks if t.kind == "midi"]
+    assert len(midi) >= 3
     calls = [e[1]["name"] for e in seen if e[0] == "tool_call"]
-    assert "generate_song" in calls
+    assert "produce_instrumental" in calls
+    assert "generate_song" not in calls
 
 
 def test_local_instrumental_sample(monkeypatch, tmp_path):

@@ -21,6 +21,14 @@ from .agent.loop import StemAgent
 from .agent.local_fallback import handle_local_intent
 from .language import execute_stemscript, StemScriptError
 from .tools import generation_tools  # noqa: F401 (registers tools)
+from .tools import produce_tools  # noqa: F401 (registers Stem produce/overlay)
+from .tools import sample_tools  # noqa: F401 (registers sample search/import)
+from .tools import plugin_tools  # noqa: F401 (registers plugin load/param)
+from .tools import proposal_tools  # noqa: F401 (registers selection/proposals)
+from .tools import memory_tools  # noqa: F401 (registers project memory)
+from .tools import task_tools  # noqa: F401 (registers autonomous tasks)
+from .tools import review_tools  # noqa: F401 (registers audio review)
+from .tools import jury_tools  # noqa: F401 (registers music jury)
 
 
 def pick_bridge(argv):

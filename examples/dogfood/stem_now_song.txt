@@ -1,0 +1,5 @@
+SONG NOW — Stem produce + vocal overlay
+1) produce_instrumental A minor Andalusian @ 122 → stem_now_instrumental.wav
+2) overlay_vocals (isolated) → stem_now_vocals.wav
+3) Mix → stem_now_song.wav
+review: verdict=pass overall=80.5

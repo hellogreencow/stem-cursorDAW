@@ -11,19 +11,41 @@ right number of times.
 """
 import json
 import fcntl
-import os
+import math
 import subprocess
 import time
 import uuid
 from pathlib import Path
 from typing import Optional
 
+from ..paths import ensure_stem_home, generated_dir
 from .base import Bridge, MidiNote, TrackInfo, SessionOverview
 
-STEM_DIR = Path.home() / ".stem"
-REQ = STEM_DIR / "request.json"
-RESP = STEM_DIR / "response.json"
-RPC_LOCK = STEM_DIR / "rpc.lock"
+# Tempo/sample_rate from Lua have historically returned inf / int64-max when
+# the wrong Temporal API is used. Quarantine instead of trusting.
+_TEMPO_MIN, _TEMPO_MAX = 20.0, 400.0
+_RATE_MIN, _RATE_MAX = 8000, 384000
+
+
+def _sanitize_tempo(raw) -> tuple:
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return 120.0, False
+    if not math.isfinite(value) or not (_TEMPO_MIN <= value <= _TEMPO_MAX):
+        return 120.0, False
+    return value, True
+
+
+def _sanitize_sample_rate(raw) -> tuple:
+    try:
+        value = int(raw)
+    except (TypeError, ValueError):
+        return 48000, False
+    if value < _RATE_MIN or value > _RATE_MAX:
+        return 48000, False
+    return value, True
+
 
 GENERAL_MIDI_PROGRAMS = (
     "Acoustic Grand Piano", "Bright Acoustic Piano", "Electric Grand Piano",
@@ -64,30 +86,37 @@ GENERAL_MIDI_PROGRAMS = (
 class ArdourBridge(Bridge):
     def __init__(self, osc_host: str = "127.0.0.1", osc_port: int = 3819,
                  rpc_timeout: float = 5.0):
-        STEM_DIR.mkdir(exist_ok=True)
+        ensure_stem_home()
         self.rpc_timeout = rpc_timeout
         self._action_seq: list = []  # ordered action_ids for undo mapping
+        # Sidecar proposal buffer (D011) — shared shape with MockBridge.
+        self._proposals: dict = {}
 
     # ---- RPC plumbing ----
     def _call(self, method: str, args: Optional[dict] = None) -> dict:
         # The transport is a single request/response mailbox. Lock it across
         # threads and processes so web refresh, chat jobs, and CLI diagnostics
         # cannot overwrite one another's request.json.
-        with RPC_LOCK.open("a+") as lock_file:
+        # Paths resolved per call so STEM_HOME changes are honored.
+        stem_dir = ensure_stem_home()
+        req = stem_dir / "request.json"
+        resp_path = stem_dir / "response.json"
+        rpc_lock = stem_dir / "rpc.lock"
+        with rpc_lock.open("a+") as lock_file:
             fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
             try:
                 req_id = uuid.uuid4().hex[:8]
                 try:
-                    RESP.unlink()
+                    resp_path.unlink()
                 except FileNotFoundError:
                     pass
-                REQ.write_text(json.dumps({"id": req_id, "method": method,
+                req.write_text(json.dumps({"id": req_id, "method": method,
                                            "args": args or {}}))
                 deadline = time.time() + self.rpc_timeout
                 while time.time() < deadline:
-                    if RESP.exists():
+                    if resp_path.exists():
                         try:
-                            resp = json.loads(RESP.read_text())
+                            resp = json.loads(resp_path.read_text())
                         except json.JSONDecodeError:
                             time.sleep(0.05)
                             continue
@@ -123,12 +152,20 @@ class ArdourBridge(Bridge):
                             muted=t.get("muted", False),
                             gain_db=t.get("gain_db", 0.0))
                   for t in r.get("tracks", [])]
+        tempo, tempo_ok = _sanitize_tempo(r.get("tempo", 120.0))
+        rate, rate_ok = _sanitize_sample_rate(r.get("sample_rate", 48000))
+        untrusted = []
+        if not tempo_ok:
+            untrusted.append("tempo")
+        if not rate_ok:
+            untrusted.append("sample_rate")
         return SessionOverview(
-            name=r.get("name", "?"), tempo=r.get("tempo", 120.0),
+            name=r.get("name", "?"), tempo=tempo,
             meter=r.get("meter", "4/4"),
-            sample_rate=r.get("sample_rate", 48000),
+            sample_rate=rate,
             tracks=tracks, markers=r.get("markers", []),
-            playhead_seconds=r.get("playhead_seconds", 0.0))
+            playhead_seconds=r.get("playhead_seconds", 0.0),
+            untrusted_fields=untrusted)
 
     def get_midi_notes(self, track_id: str) -> list:
         r = self._call("get_midi_notes", {"track_id": track_id})
@@ -231,8 +268,7 @@ class ArdourBridge(Bridge):
 
     def _resample_audio(self, file_path: str, sample_rate: int) -> str:
         src = Path(file_path)
-        out_dir = STEM_DIR / "generated"
-        out_dir.mkdir(parents=True, exist_ok=True)
+        out_dir = generated_dir()
         out = out_dir / f"{src.stem}_{sample_rate}hz_{uuid.uuid4().hex[:8]}.wav"
         subprocess.run(
             ["ffmpeg", "-y", "-loglevel", "error", "-i", str(src),
@@ -287,3 +323,121 @@ class ArdourBridge(Bridge):
 
     def fix_silent_instruments(self) -> dict:
         return self._call("fix_silent_instruments", {})
+
+    # ---- plugins ----
+    def list_plugins(self, kind: Optional[str] = None) -> list:
+        args = {}
+        if kind:
+            args["kind"] = kind
+        return self._call("list_plugins", args).get("plugins", [])
+
+    def load_plugin(self, track_id: str, plugin_id: str,
+                    position: Optional[int] = None) -> str:
+        args = {"track_id": track_id, "plugin_id": plugin_id}
+        if position is not None:
+            args["position"] = position
+        r = self._call("load_plugin", args)
+        if r.get("error"):
+            raise RuntimeError(r["error"])
+        return self._record_action()
+
+    def get_plugin_params(self, track_id: str,
+                          plugin_index: int = 0) -> dict:
+        return self._call("get_plugin_params", {
+            "track_id": track_id, "plugin_index": plugin_index,
+        })
+
+    def set_plugin_param(self, track_id: str, param_id: str, value: float,
+                         plugin_index: int = 0) -> str:
+        r = self._call("set_plugin_param", {
+            "track_id": track_id, "plugin_index": plugin_index,
+            "param_id": param_id, "value": value,
+        })
+        if r.get("error"):
+            raise RuntimeError(r["error"])
+        return self._record_action()
+
+    # ---- context / proposals ----
+    def get_playhead(self) -> float:
+        try:
+            r = self._call("get_playhead")
+            return float(r.get("playhead_seconds", 0.0))
+        except Exception:
+            return float(self.get_session_overview().playhead_seconds)
+
+    def get_selection(self) -> dict:
+        try:
+            r = self._call("get_selection")
+            r.setdefault("supported", True)
+            return r
+        except Exception:
+            return {"track_ids": [], "region_ids": [],
+                    "start_seconds": None, "end_seconds": None,
+                    "supported": False}
+
+    def set_selection(self, track_ids: Optional[list] = None,
+                      start_seconds: Optional[float] = None,
+                      end_seconds: Optional[float] = None,
+                      region_ids: Optional[list] = None) -> dict:
+        args = {}
+        if track_ids is not None:
+            args["track_ids"] = track_ids
+        if region_ids is not None:
+            args["region_ids"] = region_ids
+        if start_seconds is not None:
+            args["start_seconds"] = start_seconds
+        if end_seconds is not None:
+            args["end_seconds"] = end_seconds
+        return self._call("set_selection", args)
+
+    def propose_midi_notes(self, track_id: str, notes: list,
+                           start_beat: float = 0.0,
+                           summary: str = "") -> str:
+        proposal_id = f"prop_{uuid.uuid4().hex[:8]}"
+        staged = [{
+            "pitch": n.pitch,
+            "start_beat": n.start_beat + start_beat,
+            "length_beats": n.length_beats,
+            "velocity": n.velocity,
+            "channel": n.channel,
+        } for n in notes]
+        self._proposals[proposal_id] = {
+            "proposal_id": proposal_id,
+            "track_id": track_id,
+            "notes": staged,
+            "summary": summary or f"{len(staged)} notes",
+            "status": "pending",
+        }
+        return proposal_id
+
+    def list_proposals(self) -> list:
+        return [{
+            "proposal_id": p["proposal_id"],
+            "track_id": p["track_id"],
+            "summary": p["summary"],
+            "status": p["status"],
+            "note_count": len(p["notes"]),
+        } for p in self._proposals.values()]
+
+    def accept_proposal(self, proposal_id: str) -> str:
+        p = self._proposals.get(proposal_id)
+        if not p:
+            raise KeyError(f"unknown proposal: {proposal_id}")
+        if p["status"] != "pending":
+            raise ValueError(f"proposal not pending: {p['status']}")
+        midi = [MidiNote(pitch=n["pitch"], start_beat=n["start_beat"],
+                         length_beats=n["length_beats"],
+                         velocity=n.get("velocity", 100),
+                         channel=n.get("channel", 0))
+                for n in p["notes"]]
+        action_id = self.insert_midi_notes(p["track_id"], midi, 0.0)
+        p["status"] = "accepted"
+        p["action_id"] = action_id
+        return action_id
+
+    def reject_proposal(self, proposal_id: str) -> bool:
+        p = self._proposals.get(proposal_id)
+        if not p or p["status"] != "pending":
+            return False
+        p["status"] = "rejected"
+        return True

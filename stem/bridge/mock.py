@@ -10,6 +10,31 @@ from typing import Optional
 
 from .base import Bridge, MidiNote, TrackInfo, SessionOverview
 
+# Mock plugin catalog: instruments + one effect with controllable params.
+MOCK_PLUGIN_CATALOG = [
+    {"id": "mock.piano", "name": "Studio Piano", "creator": "Stem",
+     "category": "Piano", "type": "Mock", "kind": "instrument",
+     "presets": [],
+     "params": [
+         {"id": "level", "name": "Level", "min": 0.0, "max": 1.0, "default": 0.8},
+     ]},
+    {"id": "mock.synth", "name": "Poly Synth", "creator": "Stem",
+     "category": "Synth", "type": "Mock", "kind": "instrument",
+     "presets": [],
+     "params": [
+         {"id": "cutoff", "name": "Cutoff", "min": 0.0, "max": 1.0, "default": 0.5},
+         {"id": "resonance", "name": "Resonance", "min": 0.0, "max": 1.0,
+          "default": 0.1},
+     ]},
+    {"id": "mock.reverb", "name": "Hall Reverb", "creator": "Stem",
+     "category": "Reverb", "type": "Mock", "kind": "effect",
+     "presets": [],
+     "params": [
+         {"id": "mix", "name": "Mix", "min": 0.0, "max": 1.0, "default": 0.3},
+         {"id": "decay", "name": "Decay", "min": 0.1, "max": 10.0, "default": 2.5},
+     ]},
+]
+
 
 class MockBridge(Bridge):
     def __init__(self, name: str = "mock-session", tempo: float = 120.0):
@@ -24,6 +49,15 @@ class MockBridge(Bridge):
         self.audio: dict = {}           # track_id -> list[(path, pos)]
         self.markers: list = []
         self._undo_stack: list = []     # (action_id, snapshot)
+        self._catalog = {p["id"]: p for p in MOCK_PLUGIN_CATALOG}
+        self.selection = {
+            "track_ids": [],
+            "region_ids": [],
+            "start_seconds": None,
+            "end_seconds": None,
+            "supported": True,
+        }
+        self._proposals: dict = {}  # proposal_id -> dict
 
     def connected(self) -> bool:
         return True
@@ -77,11 +111,74 @@ class MockBridge(Bridge):
     # ---- write ----
     def list_instruments(self) -> list:
         return [
-            {"id": "mock.piano", "name": "Studio Piano", "creator": "Stem",
-             "category": "Piano", "type": "Mock", "presets": []},
-            {"id": "mock.synth", "name": "Poly Synth", "creator": "Stem",
-             "category": "Synth", "type": "Mock", "presets": []},
+            {k: v for k, v in p.items() if k != "params"}
+            for p in MOCK_PLUGIN_CATALOG if p["kind"] == "instrument"
         ]
+
+    def list_plugins(self, kind: Optional[str] = None) -> list:
+        out = []
+        for p in MOCK_PLUGIN_CATALOG:
+            if kind and p["kind"] != kind:
+                continue
+            out.append({k: v for k, v in p.items() if k != "params"})
+        return out
+
+    def _default_param_values(self, plugin_id: str) -> dict:
+        spec = self._catalog.get(plugin_id)
+        if not spec:
+            return {}
+        return {p["id"]: p["default"] for p in spec.get("params", [])}
+
+    def load_plugin(self, track_id: str, plugin_id: str,
+                    position: Optional[int] = None) -> str:
+        if track_id not in self.tracks:
+            raise KeyError(f"no such track: {track_id}")
+        if plugin_id not in self._catalog:
+            raise ValueError(f"unknown plugin: {plugin_id}")
+        action_id = self._checkpoint()
+        instance = {
+            "id": plugin_id,
+            "preset": None,
+            "params": self._default_param_values(plugin_id),
+        }
+        plugins = self.tracks[track_id].plugins
+        if position is None or position < 0 or position >= len(plugins):
+            plugins.append(instance)
+        else:
+            plugins.insert(position, instance)
+        return action_id
+
+    def get_plugin_params(self, track_id: str,
+                          plugin_index: int = 0) -> dict:
+        if track_id not in self.tracks:
+            raise KeyError(f"no such track: {track_id}")
+        plugins = self.tracks[track_id].plugins
+        if plugin_index < 0 or plugin_index >= len(plugins):
+            raise IndexError(f"no plugin at index {plugin_index}")
+        inst = plugins[plugin_index]
+        spec = self._catalog.get(inst["id"], {})
+        values = inst.setdefault("params", self._default_param_values(inst["id"]))
+        params = []
+        for p in spec.get("params", []):
+            params.append({
+                "id": p["id"], "name": p["name"],
+                "min": p["min"], "max": p["max"],
+                "value": values.get(p["id"], p["default"]),
+            })
+        return {"track_id": track_id, "plugin_index": plugin_index,
+                "plugin_id": inst["id"], "params": params}
+
+    def set_plugin_param(self, track_id: str, param_id: str, value: float,
+                         plugin_index: int = 0) -> str:
+        info = self.get_plugin_params(track_id, plugin_index)
+        match = next((p for p in info["params"] if p["id"] == param_id), None)
+        if not match:
+            raise ValueError(f"unknown param: {param_id}")
+        clamped = max(match["min"], min(match["max"], float(value)))
+        action_id = self._checkpoint()
+        inst = self.tracks[track_id].plugins[plugin_index]
+        inst.setdefault("params", {})[param_id] = clamped
+        return action_id
 
     def create_midi_track(self, name: str, instrument_id: Optional[str] = None,
                           preset: Optional[str] = None):
@@ -89,7 +186,10 @@ class MockBridge(Bridge):
         track_id = f"trk_{uuid.uuid4().hex[:6]}"
         plugins = []
         if instrument_id:
-            plugins.append({"id": instrument_id, "preset": preset})
+            plugins.append({
+                "id": instrument_id, "preset": preset,
+                "params": self._default_param_values(instrument_id),
+            })
         self.tracks[track_id] = TrackInfo(
             track_id=track_id, name=name, kind="midi", plugins=plugins)
         self.notes[track_id] = []
@@ -159,3 +259,83 @@ class MockBridge(Bridge):
 
     def save_session(self) -> None:
         pass
+
+    # ---- context / proposals ----
+    def get_playhead(self) -> float:
+        return self.playhead
+
+    def get_selection(self) -> dict:
+        return dict(self.selection)
+
+    def set_selection(self, track_ids: Optional[list] = None,
+                      start_seconds: Optional[float] = None,
+                      end_seconds: Optional[float] = None,
+                      region_ids: Optional[list] = None) -> dict:
+        if track_ids is not None:
+            for tid in track_ids:
+                if tid not in self.tracks:
+                    raise KeyError(f"no such track: {tid}")
+            self.selection["track_ids"] = list(track_ids)
+        if region_ids is not None:
+            self.selection["region_ids"] = list(region_ids)
+        if start_seconds is not None:
+            self.selection["start_seconds"] = float(start_seconds)
+        if end_seconds is not None:
+            self.selection["end_seconds"] = float(end_seconds)
+        self.selection["supported"] = True
+        return dict(self.selection)
+
+    def propose_midi_notes(self, track_id: str, notes: list,
+                           start_beat: float = 0.0,
+                           summary: str = "") -> str:
+        if track_id not in self.tracks:
+            raise KeyError(f"no such track: {track_id}")
+        if self.tracks[track_id].kind != "midi":
+            raise ValueError(f"track {track_id} is not a MIDI track")
+        proposal_id = f"prop_{uuid.uuid4().hex[:8]}"
+        staged = []
+        for n in notes:
+            staged.append(MidiNote(
+                pitch=n.pitch, start_beat=n.start_beat + start_beat,
+                length_beats=n.length_beats, velocity=n.velocity,
+                channel=n.channel))
+        self._proposals[proposal_id] = {
+            "proposal_id": proposal_id,
+            "track_id": track_id,
+            "notes": staged,
+            "summary": summary or f"{len(staged)} notes",
+            "status": "pending",
+        }
+        return proposal_id
+
+    def list_proposals(self) -> list:
+        out = []
+        for p in self._proposals.values():
+            out.append({
+                "proposal_id": p["proposal_id"],
+                "track_id": p["track_id"],
+                "summary": p["summary"],
+                "status": p["status"],
+                "note_count": len(p["notes"]),
+            })
+        return out
+
+    def accept_proposal(self, proposal_id: str) -> str:
+        p = self._proposals.get(proposal_id)
+        if not p:
+            raise KeyError(f"unknown proposal: {proposal_id}")
+        if p["status"] != "pending":
+            raise ValueError(f"proposal not pending: {p['status']}")
+        action_id = self.insert_midi_notes(p["track_id"], p["notes"], 0.0)
+        p["status"] = "accepted"
+        p["action_id"] = action_id
+        return action_id
+
+    def reject_proposal(self, proposal_id: str) -> bool:
+        p = self._proposals.get(proposal_id)
+        if not p:
+            return False
+        if p["status"] != "pending":
+            return False
+        p["status"] = "rejected"
+        return True

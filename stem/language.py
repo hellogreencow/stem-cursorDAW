@@ -6,6 +6,8 @@ from dataclasses import dataclass, field
 from typing import Callable, Optional
 
 from .tools.core import registry
+from .tools import generation_tools  # noqa: F401 - registers generation tools
+from .tools import produce_tools  # noqa: F401 - registers produce/overlay
 
 
 EventFn = Callable[[str, dict], None]
@@ -86,18 +88,9 @@ def execute_stemscript(script: str, ctx, emit: Optional[EventFn] = None) -> str:
     state = parse_stemscript(script)
 
     _run("set_tempo", {"bpm": state.tempo}, ctx, emit)
-    if state.song_prompt:
-        result = _run("generate_song", {
-            "prompt": state.song_prompt,
-            "length_seconds": state.duration_seconds,
-            "instrumental": state.instrumental,
-            "position_seconds": 0.0,
-        }, ctx, emit)
-        if "error" in result:
-            return result["error"]
-        return (f"Ran StemScript and generated a "
-                f"{'instrumental ' if state.instrumental else ''}song. "
-                f"File: {result.get('file')}.")
+    # `song:` is a style/intent hint only — Stem always builds MIDI.
+    # External full-song generation is never invoked from StemScript.
+    # Vocals only when an explicit `vocal:` line is present (and not instrumental).
 
     chords_track = _track("StemScript Chords", "chords", ctx, emit)
     if state.chord_symbols:
@@ -124,19 +117,25 @@ def execute_stemscript(script: str, ctx, emit: Optional[EventFn] = None) -> str:
             "start_beat": 0.0,
         }, ctx, emit)
 
-    if state.vocal:
-        result = _run("generate_vocals", {
+    if state.vocal and not state.instrumental:
+        result = _run("overlay_vocals", {
             "prompt": f"{state.vocal}, {state.key} "
                       f"{'minor' if state.minor else 'major'} vocal",
             "lyrics": state.vocal,
             "length_seconds": state.duration_seconds,
             "position_seconds": 0.0,
+            "require_instrumental": True,
         }, ctx, emit)
         if "error" in result:
             return result["error"]
 
+    song_note = ""
+    if state.song_prompt:
+        song_note = f" Style intent from song: {state.song_prompt!r}."
     return (f"Ran StemScript: {state.bars} bars in {state.key} "
-            f"{'minor' if state.minor else 'major'} at {state.tempo:g} BPM.")
+            f"{'minor' if state.minor else 'major'} at {state.tempo:g} BPM."
+            f"{song_note} Stem produced the instrumental"
+            f"{'; vocals overlaid' if state.vocal and not state.instrumental else ''}.")
 
 
 def parse_stemscript(script: str) -> StemScriptState:

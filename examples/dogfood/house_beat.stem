@@ -1,0 +1,8 @@
+stem:
+tempo 124
+key F minor
+duration 16s
+# key-minor switches default progression to Andalusian (F minor cadence)
+drums four_on_floor
+bass driving
+lead chant

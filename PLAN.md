@@ -1,5 +1,8 @@
 # Stem — The Cursor of Music Production
 
+> **Detailed execution path + testing harness:** see [`EXECUTION_PLAN.md`](./EXECUTION_PLAN.md)
+> (milestones M0–M5, ordered steps, dogfood gates, layered CI harness).
+
 **One-line vision:** What Cursor did to VS Code, Stem does to Ardour — a pro-grade,
 plugin-hosting DAW with a native AI agent that can do anything a producer can do,
 faster: place notes, find chords, design sounds, dig samples, generate audio, mix.

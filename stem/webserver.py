@@ -17,8 +17,17 @@ from .bridge.ardour import ArdourBridge
 from .bridge.mock import MockBridge
 from .agent.loop import StemAgent
 from .agent.local_fallback import handle_local_intent
+from .paths import ensure_stem_home
 from .tools import generation_tools  # noqa: F401 — registers extra tools
+from .tools import produce_tools  # noqa: F401 — registers Stem produce/overlay
 from .tools import ardour_tools  # noqa: F401 — registers ardour_help
+from .tools import sample_tools  # noqa: F401 — registers sample search/import
+from .tools import plugin_tools  # noqa: F401 — registers plugin load/param
+from .tools import proposal_tools  # noqa: F401 — registers selection/proposals
+from .tools import memory_tools  # noqa: F401 — registers project memory
+from .tools import task_tools  # noqa: F401 — registers autonomous tasks
+from .tools import review_tools  # noqa: F401 — registers audio review
+from .tools import jury_tools  # noqa: F401 — registers music jury
 from .tools.core import registry
 
 WEB_DIR = Path(__file__).parent / "web"
@@ -39,8 +48,7 @@ class StemHTTPServer(ThreadingHTTPServer):
 
 def _install_bridge_impl():
     """Keep Ardour's hot-reloaded bridge implementation in sync with Stem."""
-    stem_dir = Path.home() / ".stem"
-    stem_dir.mkdir(exist_ok=True)
+    stem_dir = ensure_stem_home()
     src = Path(__file__).parent / "bridge" / "bridge_impl.lua"
     dst = stem_dir / "bridge_impl.lua"
     body = src.read_text()

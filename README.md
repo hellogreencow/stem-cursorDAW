@@ -105,11 +105,90 @@ export ACE_STEP_DIR=~/Desktop/ai-music-daw   # has models/ + acestep-env/
 # or: export SUNO_API_KEY=...
 ```
 
+## Sample library
+
+```bash
+./venv/bin/python -m stem.index_samples ~/Samples   # builds ~/.stem/sample_index.json
+# then in chat: "find a dark snare and put it on the timeline"
+```
+
+## Generation (offline / CI)
+
+```bash
+# Copy a local WAV instead of calling ACE/Suno/ElevenLabs:
+STEM_GEN_FIXTURE_WAV=/path/to/pad.wav ./venv/bin/python -m stem.cli --mock
+
+# Replay a recorded ElevenLabs response (decoded WAV keyed by request body):
+STEM_CASSETTE_DIR=tests/fixtures/cassettes STEM_CASSETTE_MODE=replay \
+  ./venv/bin/python -m stem.cli --mock
+```
+
+## Proposals (Cursor-style review)
+
+The agent can stage MIDI with `propose_midi_notes`, then `accept_proposal` or
+`reject_proposal`, without writing the session until accept. Ghost piano-roll
+rendering comes later; the review buffer is already real.
+
+## Project memory
+
+Preferences persist under `~/.stem/memory/<project>.json` (or `$STEM_HOME`).
+The agent injects them into its system prompt and can `recall_memory` /
+`update_memory` explicitly.
+
+## Produce the track (Stem owns the song)
+
+```text
+produce_instrumental style=house key=F is_minor=true bars=16
+analyze_instrumental          # when you're happy with the bed
+overlay_vocals prompt="…" lyrics="…"
+```
+
+Any style / chords / progression → Stem MIDI tools. Vocals are optional and
+second. `generate_song` / `generate_song_stems` are **blocked by default**
+(opt-in only via `allow_external_full_song=true` or
+`STEM_ALLOW_EXTERNAL_FULL_SONG=1`).
+
+Judge musically (not just loudness):
+
+```text
+judge_session style=house key=F is_minor=true
+# → pulse_locke / harmony_bach / form_abbey / intent_fit (+ mix_hygiene if WAV)
+```
+
+## Dogfood listen
+
+**Stem track + vocals:** [`examples/dogfood/stem_vocal_house.wav`](examples/dogfood/stem_vocal_house.wav)
+
+Pipeline: Stem instrumental → ElevenLabs **vocals only** → mix → review.
+Rebuild: `ELEVENLABS_API_KEY=… python scripts/stem_track_plus_vocals.py`
+
+Also: `stem_instrumental_house.wav` (bed) and `stem_vocals_only.wav` (acapella).
+
+Never commit API keys. If a key was pasted into chat, rotate it.
+
+## Autonomous tasks
+
+```text
+list_tasks
+run_task task=arrange_loop_to_song          # preview only
+run_task task=arrange_loop_to_song confirm=true
+run_task task=rough_mix confirm=true
+```
+
+Destructive modes refuse to execute without `confirm=true`.
+
 ## Tests
 
 ```bash
-./venv/bin/python -m pytest tests/ -q   # 8 tests, includes the Phase 0 milestone
+./venv/bin/python -m pytest tests/ -q -m "not nightly and not live"  # PR-fast
+./venv/bin/python scripts/live_smoke.py                              # live Ardour
 ```
+
+CI: `.github/workflows/pr-fast.yml`
+
+Tests set `STEM_HOME` to a temp dir so they never touch `~/.stem`. Live smoke
+must use the default home (Lua still reads `~/.stem`). See `EXECUTION_PLAN.md`,
+`CAPABILITY_MATRIX.md`, and `DECISIONS.md`.
 
 ## Layout
 
@@ -124,4 +203,5 @@ stem/
 tests/       vertical-slice + validation tests
 ```
 
-See PLAN.md for the roadmap and GAPS.md for known unknowns.
+See PLAN.md for the roadmap, EXECUTION_PLAN.md for the step-by-step path
+to Cursor-for-DAW (incl. testing harness), and GAPS.md for known unknowns.

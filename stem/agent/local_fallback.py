@@ -10,6 +10,7 @@ from typing import Callable, Optional
 
 from ..language import execute_stemscript, looks_like_stemscript, StemScriptError
 from ..tools import generation_tools  # noqa: F401 - registers generation tools
+from ..tools import produce_tools  # noqa: F401 - registers produce/overlay
 from ..tools.core import registry
 
 
@@ -755,18 +756,32 @@ def handle_local_intent(message: str, ctx, emit: Optional[EventFn] = None):
                 f"track. File: {_file(result)}. This can be undone.")
 
     if wants_song and wants_vocal and explicit_stems:
-        args = {
+        # Stem bed + vocal overlay — never external song+stems.
+        key, is_minor = _key(raw)
+        result = _run("produce_instrumental", {
+            "style": "party" if "party" in low or "anthem" in low else "default",
+            "key": key,
+            "is_minor": is_minor,
+            "tempo": _tempo(raw),
+            "bars": max(8, min(32, int((_duration(raw, 32.0) * _tempo(raw)
+                                        / 60.0 + 3.99) // 4))),
+            "include_lead": True,
             "prompt": raw,
-            "length_seconds": duration,
-            "position_seconds": 0.0,
-        }
-        result = _run("generate_song_stems", args, ctx, emit)
+        }, ctx, emit)
         if not _ok(result):
             return result["error"]
-        return ("Generated a song idea, split it into separate vocal and backing "
-                "tracks, and imported both into the session. "
-                f"Vocal: {result.get('vocal_file')}. "
-                f"Backing: {result.get('backing_file')}. This can be undone.")
+        vocal = _run("overlay_vocals", {
+            "prompt": raw,
+            "lyrics": lyrics,
+            "length_seconds": duration,
+            "position_seconds": 0.0,
+            "require_instrumental": True,
+        }, ctx, emit)
+        if not _ok(vocal):
+            return vocal["error"]
+        return ("Stem produced the instrumental, then overlaid isolated vocals "
+                f"(not an external full-song mix). Vocal: {_file(vocal)}. "
+                "Each step can be undone.")
 
     if vocal_for_existing_backing:
         args = {
@@ -774,8 +789,9 @@ def handle_local_intent(message: str, ctx, emit: Optional[EventFn] = None):
             "lyrics": lyrics,
             "length_seconds": duration,
             "position_seconds": 0.0,
+            "require_instrumental": False,
         }
-        result = _run("generate_vocals", args, ctx, emit)
+        result = _run("overlay_vocals", args, ctx, emit)
         if not _ok(result):
             return result["error"]
         return ("Generated isolated vocals and imported them as a new audio "
@@ -786,18 +802,45 @@ def handle_local_intent(message: str, ctx, emit: Optional[EventFn] = None):
         "full song", "make a song", "make me a song", "generate a song",
         "create a song", "anthem", "party rock"))
     if wants_song and (wants_vocal or full_song_request):
-        args = {
+        # Stem owns the song. Vocals only as an optional overlay afterward.
+        key, is_minor = _key(raw)
+        bars = max(8, min(32, int((_duration(raw, 32.0 if full_song_request
+                                             else duration)
+                                   * _tempo(raw) / 60.0 + 3.99) // 4)))
+        result = _run("produce_instrumental", {
+            "style": "party" if "party" in low or "anthem" in low else "default",
+            "key": key,
+            "is_minor": is_minor,
+            "tempo": _tempo(raw),
+            "bars": bars,
+            "include_lead": True,
             "prompt": raw,
-            "length_seconds": _duration(raw, 60.0 if full_song_request else duration),
-            "instrumental": "instrumental" in low or "no vocals" in low,
-            "position_seconds": 0.0,
-        }
-        result = _run("generate_song", args, ctx, emit)
+        }, ctx, emit)
         if not _ok(result):
             return result["error"]
-        mode = "instrumental song" if args["instrumental"] else "song with vocals"
-        return (f"Generated a {mode} and imported it as a new audio track. "
-                f"File: {_file(result)}. This can be undone.")
+        if wants_vocal and "instrumental" not in low and "no vocals" not in low:
+            vocal = _run("overlay_vocals", {
+                "prompt": raw,
+                "lyrics": lyrics,
+                "length_seconds": _duration(raw, 60.0 if full_song_request
+                                            else duration),
+                "position_seconds": 0.0,
+                "require_instrumental": True,
+            }, ctx, emit)
+            if not _ok(vocal):
+                return vocal["error"]
+            return (f"Stem produced a {bars}-bar instrumental in {key} "
+                    f"{'minor' if is_minor else 'major'} at "
+                    f"{result.get('tempo', _tempo(raw)):g} BPM, then overlaid "
+                    f"isolated vocals. Vocal: {_file(vocal)}. "
+                    "Stem owns the bed — not an external full-song API. "
+                    "Each step can be undone.")
+        return (f"Stem produced a {bars}-bar instrumental in {key} "
+                f"{'minor' if is_minor else 'major'} at "
+                f"{result.get('tempo', _tempo(raw)):g} BPM "
+                f"({result.get('progression', 'progression')}). "
+                "When you're happy with the bed, ask to overlay vocals. "
+                "Each step can be undone.")
 
     if wants_instrumental and not wants_vocal:
         args = {

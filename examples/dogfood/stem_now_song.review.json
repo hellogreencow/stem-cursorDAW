@@ -1,0 +1,17 @@
+{
+  "path": "examples/dogfood/stem_now_song.wav",
+  "duration_seconds": 32.078,
+  "sample_rate": 44100,
+  "channels": 2,
+  "peak": 0.8615,
+  "rms": 0.1784,
+  "crest_db": 13.68,
+  "silence_ratio": 0.0654,
+  "loudness_score": 1.0,
+  "dynamics_score": 0.806,
+  "presence_score": 0.633,
+  "overall": 80.5,
+  "verdict": "pass",
+  "findings": [],
+  "improve_prompt_hints": []
+}

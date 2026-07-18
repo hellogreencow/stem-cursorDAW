@@ -9,12 +9,13 @@ generate_sample(prompt) -> path to a WAV on disk, ready for
 Bridge.import_audio() to drop onto a track.
 """
 import os
-import asyncio
+import shutil
 import uuid
 from pathlib import Path
 from typing import Optional
 
-OUTPUT_DIR = Path.home() / ".stem" / "generated"
+from ..paths import generated_dir
+
 ACE_STEP_DIR = os.environ.get("ACE_STEP_DIR", "")
 SUNO_API_KEY = os.environ.get("SUNO_API_KEY", "")
 
@@ -23,14 +24,15 @@ class GenerationService:
     """Facade over ACE-Step (local) and Suno (API)."""
 
     def __init__(self):
-        OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
         self.ace_available = bool(ACE_STEP_DIR) and Path(ACE_STEP_DIR).exists()
         self.suno_available = bool(SUNO_API_KEY)
 
     def status(self) -> dict:
         from .elevenlabs_music import elevenlabs_music
+        fixture = bool(os.environ.get("STEM_GEN_FIXTURE_WAV"))
         return {"ace_step": self.ace_available, "suno": self.suno_available,
-                "elevenlabs_music": elevenlabs_music.available()}
+                "elevenlabs_music": elevenlabs_music.available(),
+                "fixture_wav": fixture}
 
     def generate_sample(self, prompt: str, duration_seconds: float = 8.0,
                         backend: Optional[str] = None) -> str:
@@ -38,7 +40,18 @@ class GenerationService:
 
         STUB until a backend is configured: raises with setup instructions
         rather than silently returning fake audio.
+
+        STEM_GEN_FIXTURE_WAV: copy a local WAV (CI / offline) without backends.
         """
+        fixture = os.environ.get("STEM_GEN_FIXTURE_WAV")
+        if fixture:
+            src = Path(fixture).expanduser()
+            if not src.exists():
+                raise RuntimeError(f"STEM_GEN_FIXTURE_WAV not found: {src}")
+            out = generated_dir() / f"fixture_{uuid.uuid4().hex[:8]}.wav"
+            shutil.copyfile(src, out)
+            return str(out)
+
         backend = backend or ("ace_step" if self.ace_available
                               else "suno" if self.suno_available
                               else "elevenlabs_music")
@@ -54,7 +67,7 @@ class GenerationService:
             "and acestep-env/), set SUNO_API_KEY, or set ELEVENLABS_API_KEY.")
 
     def _generate_ace_step(self, prompt: str, duration: float) -> str:
-        out = OUTPUT_DIR / f"ace_{uuid.uuid4().hex[:8]}.wav"
+        out = generated_dir() / f"ace_{uuid.uuid4().hex[:8]}.wav"
         # Adapted pipeline from ai-music-daw/backend/services/ace_step_service.py:
         # shell out to the acestep CLI inside its own venv so torch deps stay
         # isolated from the agent process.

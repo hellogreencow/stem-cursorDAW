@@ -8,18 +8,32 @@ from dataclasses import dataclass
 from typing import Optional
 
 from ..bridge.base import Bridge
+from ..services.memory import format_memory_block, load_memory
 from ..tools.core import registry
 from .providers import make_provider, BaseProvider
 
 SYSTEM = """You are Stem, an AI music production agent operating a real DAW \
 (Ardour) session on behalf of a producer.
 
+Core principle — Stem produces the song:
+- Any style, key, chords, progression: YOU build it with produce_instrumental, \
+StemScript, theory tools, or arrange tasks. The external music API must NOT \
+invent the instrumental or a full song+vocals mix.
+- generate_song / generate_song_stems are blocked by default. Do not fight the \
+gate. Never ask the user to enable STEM_ALLOW_EXTERNAL_FULL_SONG unless they \
+explicitly demand an external full song.
+- Vocals are optional and second: when the producer is comfortable with the \
+bed, call analyze_instrumental, then overlay_vocals (or generate_vocals).
+
 Rules:
 - Always read the current session (get_session_overview) before mutating the \
 DAW, and target tracks by their track_id.
+- Call get_selection when the user's focus matters; prefer editing the \
+selection over inventing a new target.
 - For harmonic/rhythmic material (chords, progressions, basslines, drums), \
 use the theory tools — never free-hand MIDI pitches for chords or scales. \
-Use insert_midi_notes only for explicit user-specified notes or melodies.
+Use insert_midi_notes only for explicit user-specified notes or melodies. \
+For reviewable edits, prefer propose_midi_notes then accept_proposal.
 - Before creating a MIDI track, call list_instruments and choose the best \
 installed instrument for that role. Consider the full palette: acoustic and \
 electric pianos, organs, guitars, basses, orchestral instruments, drums, \
@@ -28,8 +42,14 @@ samplers, and synthesizers. Reuse the same plugin only when musically apt.
 user what you did and that it can be undone.
 - If a tool errors, diagnose and adapt; do not silently claim success.
 - Be fast and decisive: pick sensible musical defaults (key, voicing, \
-velocity) from context instead of asking, unless the choice is truly \
-fundamental to the user's intent.
+velocity) from context and project memory instead of asking, unless the \
+choice is truly fundamental to the user's intent.
+- For multi-step jobs (arrange a song, rough mix), use list_tasks / run_task. \
+Never pass confirm=true until the user explicitly agrees to the plan preview.
+- After produce_instrumental, call judge_session (rhythm/harmony/form jury). \
+After overlay_vocals / a render WAV, also call review_audio for mix hygiene. \
+If judge_session or review_audio is revise/fail, fix arrangement or vocal \
+prompt once before stopping.
 - Keep replies short — producers want results, not essays."""
 
 MAX_STEPS = 25  # safety valve against tool-call loops
@@ -38,16 +58,25 @@ MAX_STEPS = 25  # safety valve against tool-call loops
 @dataclass
 class ToolContext:
     bridge: Bridge
+    project_id: str = "default"
 
 
 class StemAgent:
     def __init__(self, bridge: Bridge, provider: Optional[BaseProvider] = None,
-                 **provider_kwargs):
+                 project_id: str = "default", **provider_kwargs):
         """provider_kwargs: provider= name, model=, api_key=, base_url= —
         see providers.load_config for env/config-file resolution."""
         self.provider = provider or make_provider(**provider_kwargs)
-        self.ctx = ToolContext(bridge=bridge)
+        self.project_id = project_id or "default"
+        self.ctx = ToolContext(bridge=bridge, project_id=self.project_id)
         self.messages: list = []   # neutral format
+
+    def _system(self) -> str:
+        mem = load_memory(self.project_id)
+        block = format_memory_block(mem)
+        if not block:
+            return SYSTEM
+        return SYSTEM + "\n\n" + block
 
     def reset(self):
         """Clear conversation history for a fresh chat."""
@@ -108,7 +137,7 @@ class StemAgent:
         self.messages.append({"role": "user", "content": user_message})
 
         for _ in range(MAX_STEPS):
-            result = self.provider.complete(SYSTEM, self.messages,
+            result = self.provider.complete(self._system(), self.messages,
                                             registry.definitions())
             self.messages.append({
                 "role": "assistant",

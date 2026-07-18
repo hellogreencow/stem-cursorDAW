@@ -24,10 +24,9 @@ Providers:
 import os
 import json
 from dataclasses import dataclass, field
-from pathlib import Path
 from typing import Optional
 
-CONFIG_PATH = Path.home() / ".stem" / "config.json"
+from ..paths import config_path
 
 DEFAULT_MODELS = {
     "anthropic": "claude-sonnet-4-6",
@@ -69,11 +68,12 @@ def load_config(provider: Optional[str] = None, model: Optional[str] = None,
                 api_key: Optional[str] = None,
                 base_url: Optional[str] = None) -> dict:
     file_cfg = {}
-    if CONFIG_PATH.exists():
+    cfg_path = config_path()
+    if cfg_path.exists():
         try:
-            file_cfg = json.loads(CONFIG_PATH.read_text())
+            file_cfg = json.loads(cfg_path.read_text())
         except json.JSONDecodeError:
-            raise RuntimeError(f"invalid JSON in {CONFIG_PATH}")
+            raise RuntimeError(f"invalid JSON in {cfg_path}")
 
     explicit_provider = provider is not None
     env_provider = os.environ.get("STEM_PROVIDER")

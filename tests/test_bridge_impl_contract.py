@@ -1,6 +1,8 @@
 import os
 from pathlib import Path
 
+import pytest
+
 
 def _ardour_root() -> Path:
     here = Path(__file__).resolve()
@@ -24,12 +26,38 @@ ARDOUR_ROOT = _ardour_root()
 ARDOUR_STEM_PANEL = ARDOUR_ROOT / "gtk2_ardour" / "stem_panel.cc"
 ARDOUR_OSX_BUILD = ARDOUR_ROOT / "tools" / "osx_packaging" / "osx_build"
 
+# D006: panel/packaging contracts live in the Ardour fork; skip when absent.
+requires_ardour_panel = pytest.mark.skipif(
+    not ARDOUR_STEM_PANEL.exists(),
+    reason="ardour-ai stem_panel.cc not found; set ARDOUR_AI_ROOT for full contracts",
+)
+requires_ardour_osx = pytest.mark.skipif(
+    not ARDOUR_OSX_BUILD.exists(),
+    reason="ardour-ai osx_build not found; set ARDOUR_AI_ROOT for packaging contracts",
+)
+
 
 def test_live_bridge_uses_embedded_audio_import():
     source = BRIDGE_IMPL.read_text()
 
     assert "ARDOUR.LuaAPI.import_audio_file" in source
     assert "Editor:do_import" not in source
+
+
+def test_live_bridge_exposes_plugin_control_handlers():
+    source = BRIDGE_IMPL.read_text()
+    for name in ("list_plugins", "load_plugin", "get_plugin_params",
+                 "set_plugin_param"):
+        assert f"function handlers.{name}" in source, name
+    assert "ARDOUR.LuaAPI.new_plugin" in source
+    assert "ARDOUR.LuaAPI.set_processor_param" in source
+    assert "ARDOUR.LuaAPI.get_processor_param" in source
+
+
+def test_live_bridge_exposes_playhead_and_selection_handlers():
+    source = BRIDGE_IMPL.read_text()
+    for name in ("get_playhead", "get_selection", "set_selection"):
+        assert f"function handlers.{name}" in source, name
 
 
 def test_live_bridge_uses_native_tempo_helper():
@@ -60,6 +88,7 @@ def test_midi_note_insert_uses_model_undo_command_directly():
     assert "commit_reversible_command" not in insert_handler
 
 
+@requires_ardour_panel
 def test_native_panel_launches_embedded_agent_without_browser():
     source = ARDOUR_STEM_PANEL.read_text()
     ensure_server = source.split("StemPanel::ensure_server ()", 1)[1].split(
@@ -74,6 +103,7 @@ def test_native_panel_launches_embedded_agent_without_browser():
     assert "STEM_ROOT=" in ensure_server
 
 
+@requires_ardour_panel
 def test_native_panel_has_simple_quick_actions_and_library():
     source = ARDOUR_STEM_PANEL.read_text()
 
@@ -85,6 +115,7 @@ def test_native_panel_has_simple_quick_actions_and_library():
     assert "on_library" in source
 
 
+@requires_ardour_panel
 def test_native_panel_keeps_chat_from_resizing_ardour_window():
     source = ARDOUR_STEM_PANEL.read_text()
 
@@ -98,6 +129,7 @@ def test_native_panel_keeps_chat_from_resizing_ardour_window():
     assert "_status.set_ellipsize (Pango::ELLIPSIZE_END)" in source
 
 
+@requires_ardour_osx
 def test_macos_packaging_can_embed_stem_runtime():
     source = ARDOUR_OSX_BUILD.read_text()
     public_branch = source.split("--public)", 1)[1].split("shift ;;", 1)[0]
@@ -124,6 +156,7 @@ def test_macos_packaging_can_embed_stem_runtime():
     assert 'codesign --force --deep --sign - --timestamp=none "$APP_PATH"' not in source
 
 
+@requires_ardour_panel
 def test_native_panel_waits_for_agent_before_chat_post():
     source = ARDOUR_STEM_PANEL.read_text()
     worker = source.split("StemPanel::worker_run", 1)[1].split(
@@ -141,6 +174,7 @@ def test_native_panel_waits_for_agent_before_chat_post():
     assert 'i->kind == "panel_status"' in drain
 
 
+@requires_ardour_panel
 def test_native_panel_uses_embedded_python_runtime_when_available():
     source = ARDOUR_STEM_PANEL.read_text()
 
@@ -151,6 +185,7 @@ def test_native_panel_uses_embedded_python_runtime_when_available():
     assert 'path_exists (lib + "/os.py")' in source
 
 
+@requires_ardour_panel
 def test_native_panel_syncs_selected_history_to_agent():
     source = ARDOUR_STEM_PANEL.read_text()
     selected = source.split("StemPanel::on_history_selected", 1)[1]
