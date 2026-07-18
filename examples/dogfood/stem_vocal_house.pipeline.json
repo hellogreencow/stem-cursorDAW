@@ -1,0 +1,25 @@
+{
+  "pipeline": "stem_instrumental + elevenlabs_vocals_only",
+  "not": "full elevenlabs song",
+  "instrumental": "stem_instrumental_house.wav",
+  "vocals": "stem_vocals_only.wav",
+  "final": "stem_vocal_house.wav",
+  "stem_summary": "Ran StemScript: 9 bars in F minor at 124 BPM.\narrange_ok=True checklist={'tempo_set': True, 'tracks_ready': True, 'notes_present': True, 'markers_present': True}",
+  "review": {
+    "path": "examples/dogfood/stem_vocal_house.wav",
+    "duration_seconds": 32.078,
+    "sample_rate": 44100,
+    "channels": 2,
+    "peak": 0.8773,
+    "rms": 0.1364,
+    "crest_db": 16.17,
+    "silence_ratio": 0.2796,
+    "loudness_score": 1.0,
+    "dynamics_score": 1.0,
+    "presence_score": 0.664,
+    "overall": 86.6,
+    "verdict": "pass",
+    "findings": [],
+    "improve_prompt_hints": []
+  }
+}

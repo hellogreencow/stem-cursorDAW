@@ -137,12 +137,12 @@ The agent injects them into its system prompt and can `recall_memory` /
 
 ## Dogfood listen
 
-**With vocals:** [`examples/dogfood/stem_vocal_house.wav`](examples/dogfood/stem_vocal_house.wav)
-(ElevenLabs Music + listen/review harness). Rebuild:
-`ELEVENLABS_API_KEY=… python scripts/generate_and_review_song.py`
+**Stem track + vocals:** [`examples/dogfood/stem_vocal_house.wav`](examples/dogfood/stem_vocal_house.wav)
 
-**Offline synth sketch:** [`examples/dogfood/stem_f_minor_house.wav`](examples/dogfood/stem_f_minor_house.wav)
-via `python scripts/render_mock_song.py`.
+Pipeline: Stem instrumental → ElevenLabs **vocals only** → mix → review.
+Rebuild: `ELEVENLABS_API_KEY=… python scripts/stem_track_plus_vocals.py`
+
+Also: `stem_instrumental_house.wav` (bed) and `stem_vocals_only.wav` (acapella).
 
 Never commit API keys. If a key was pasted into chat, rotate it.
 

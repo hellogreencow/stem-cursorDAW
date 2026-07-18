@@ -1,22 +1,25 @@
 # Stem dogfood artifacts
 
-## `stem_vocal_house.wav` (preferred listen)
+## Preferred listen: `stem_vocal_house.wav`
 
-~45s deep-house with **real sung vocals** via ElevenLabs Music, then scored by
-the listen/review harness (`review_audio`).
+**Pipeline (correct):**
 
-- Review JSON: `stem_vocal_house.review.json`
-- Rebuild (key via env only — never commit secrets):
+1. **Stem** builds the instrumental (`house_beat.stem` + `arrange_loop_to_song` → synth render) → `stem_instrumental_house.wav`
+2. **ElevenLabs** supplies an **isolated vocal stem only** → `stem_vocals_only.wav`
+3. Mix → `stem_vocal_house.wav`
+4. Listen harness → `stem_vocal_house.review.json`
+
+This is **not** a full ElevenLabs song replacing Stem.
+
+Rebuild:
 
 ```bash
-export ELEVENLABS_API_KEY=...   # do not put this in git
-python scripts/generate_and_review_song.py
+export ELEVENLABS_API_KEY=...   # never commit
+python scripts/stem_track_plus_vocals.py
 ```
 
-The script regenerates with an improved prompt if the first pass gets
-`revise`/`fail`.
+## Also present
 
-## `stem_f_minor_house.wav`
-
-24s offline synth sketch (no API): StemScript + arrange →
-`scripts/render_mock_song.py`.
+- `stem_instrumental_house.wav` — Stem bed alone
+- `stem_vocals_only.wav` — vocal stem alone
+- `stem_f_minor_house.wav` — earlier Stem-only synth sketch (no vocals)

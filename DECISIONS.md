@@ -302,5 +302,23 @@ key in chat — use once for generation, warn to rotate, never commit.
 **Downstream:** Agent can generate → review → improve prompt → regenerate.
 CI tests harness on fixtures without network.
 
-**Result:** Vocal track passed listen harness on attempt 1 (overall 84.6,
-45s). Artifacts under examples/dogfood/; key not committed.
+**Result:** First vocal dogfood wrongly used a full ElevenLabs song (see D018).
+
+---
+
+## D018 — Own the mistake: Stem bed first, vocals second (2026-07-18)
+
+**Decision:** Replace the full-ElevenLabs dogfood with
+`scripts/stem_track_plus_vocals.py`: StemScript/arrange → synth instrumental →
+ElevenLabs `isolate_vocals` → mix → review. Agent prompt forbids substituting
+`generate_song` for “make a track with vocals.”
+
+**Why:** Oli asked for Stem-made track then vocals. Shipping a full EL mix
+ignored that. Correct provenance: Stem owns the music bed.
+
+**Downstream:** `stem_vocal_house.wav` overwritten by mixed artifact;
+`stem_instrumental_house.wav` + `stem_vocals_only.wav` kept for inspection;
+old `generate_and_review_song.py` forwards to the correct script.
+
+**Result:** Regenerated mix passed review (overall 86.6). Instrumental +
+vocals-only + final mix committed; docs/agent prompt corrected.

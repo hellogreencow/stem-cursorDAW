@@ -1,8 +1,6 @@
-Stem vocal dogfood (ElevenLabs Music)
-length_target_s=45.0
-attempts=1
-verdict=pass overall=84.6
-findings=[]
-output=stem_vocal_house.wav
-Rebuild: ELEVENLABS_API_KEY=… python scripts/generate_and_review_song.py
-NOTE: API key must never be committed.
+CORRECT PIPELINE: Stem track + ElevenLabs vocals only
+1) Stem MIDI/arrange → stem_instrumental_house.wav
+2) ElevenLabs isolate_vocals → stem_vocals_only.wav
+3) Mix → stem_vocal_house.wav
+review: verdict=pass overall=86.6
+Rebuild: ELEVENLABS_API_KEY=… python scripts/stem_track_plus_vocals.py
