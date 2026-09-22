@@ -125,7 +125,13 @@ def generate_song_stems(args, ctx):
     vocal_action = ctx.bridge.import_audio("", vocal, args.position_seconds)
     backing_action = ctx.bridge.import_audio("", backing, args.position_seconds)
     return {
-        "action_id": backing_action,
+        # This tool makes TWO mutations. Both bridge implementations undo
+        # "back to and including" the id they are given, so the id handed
+        # back has to be the FIRST one — returning the last (as this did)
+        # meant undoing the tool left the vocal track behind: half an undo,
+        # which is worse than none because it looks like it worked.
+        "action_id": vocal_action,
+        "action_ids": [vocal_action, backing_action],
         "vocal_action_id": vocal_action,
         "backing_action_id": backing_action,
         "full_mix": full,
