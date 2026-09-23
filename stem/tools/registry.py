@@ -20,6 +20,8 @@ from .verification import (
 )
 
 NO_ACTION_ID_WARNING = "mutating tool returned no action_id"
+NOOP_REASON = ("the tool found nothing to change and left the session "
+               "alone, so there is nothing to undo")
 NO_UNDO_REASON = (
     "this tool reported no action_id, so Stem cannot undo it from here — "
     "the change is only reversible with Ardour's own undo")
@@ -99,6 +101,21 @@ class ToolRegistry:
                 self._attach_partial_mutation(result, bridge, name, before,
                                               scope)
             return result
+
+        if result.get("noop") and "action_id" not in result:
+            # A deliberate no-op (quantizing notes already on the grid) makes
+            # no bridge call and takes no checkpoint. Still measured: if the
+            # session moved anyway, fall through and report it like any other
+            # unaccounted mutation.
+            after = fingerprint(bridge, scope) if watching else None
+            moved = diff(before, after) if watching else {"changed": False}
+            if not moved["changed"]:
+                if watching:
+                    result["verified"] = {
+                        "checked": moved.get("checked", False),
+                        "changed": False, "changes": []}
+                result["undo"] = {"available": False, "reason": NOOP_REASON}
+                return result
 
         if not watching:
             if tool.mutates and "action_id" not in result:
