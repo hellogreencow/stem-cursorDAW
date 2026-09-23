@@ -4,10 +4,14 @@ File-based JSON RPC talks to the stem_bridge.lua command server for session
 edits, reads, and transport. Keeping transport on the same acknowledged channel
 avoids silent OSC no-ops when Ardour's OSC control surface is disabled.
 
-Undo strategy: every Lua mutation is wrapped in Ardour's
-begin/commit_reversible_command, so undo() maps to Ardour's real undo stack.
-action_ids are sequence markers; undo(action_id) replays Session:undo() the
-right number of times.
+Undo strategy: each successful mutation is one entry on the Lua bridge's
+own undo journal (bridge_impl.lua records the exact inverse, and commits a
+named reversible command where Ardour has one), and one entry in
+_action_seq here. The two must stay 1:1, so an action is recorded only when
+the call succeeded, and undo hands the bridge the id of the entry it expects
+to pop. undo(action_id) pops newest-first down to that action and stops at
+the first refusal. Plugin changes (add_instrument) are journaled only when
+the bridge says so.
 """
 import json
 import fcntl
@@ -104,9 +108,31 @@ class ArdourBridge(Bridge):
             finally:
                 fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
 
-    def _record_action(self) -> str:
-        action_id = uuid.uuid4().hex[:8]
+    def _mutate(self, method: str, args: Optional[dict] = None) -> dict:
+        """Run one journaled mutation and return its result.
+
+        Python's _action_seq and the Lua bridge's undo journal must stay 1:1,
+        or undo pops the wrong entry. So an action is recorded only when the
+        call succeeded: _call raises on a transport-level error, and an
+        ``{"error": ...}`` returned as a value (how older bridge_impl.lua
+        versions reported failure) is raised here too instead of being
+        recorded as an action that never happened."""
+        result = self._call(method, args)
+        if isinstance(result, dict) and result.get("error"):
+            raise RuntimeError(f"ardour bridge: {result['error']}")
+        return result
+
+    def _record_action(self, result: Optional[dict] = None) -> str:
+        """Record a successful mutation. When the bridge names its journal
+        entry (``action_id``), that id is used, so undo can hand it back and
+        the bridge can refuse if its journal and ours have drifted."""
+        bridge_id = result.get("action_id") if isinstance(result, dict) else None
+        action_id = str(bridge_id) if bridge_id else uuid.uuid4().hex[:8]
         self._action_seq.append(action_id)
+        if bridge_id:
+            if not hasattr(self, "_bridge_ids"):
+                self._bridge_ids = set()
+            self._bridge_ids.add(action_id)
         return action_id
 
     def connected(self) -> bool:
@@ -134,7 +160,8 @@ class ArdourBridge(Bridge):
         r = self._call("get_midi_notes", {"track_id": track_id})
         return [MidiNote(pitch=n["pitch"], start_beat=n["start_beat"],
                          length_beats=n["length_beats"],
-                         velocity=n.get("velocity", 100))
+                         velocity=n.get("velocity", 100),
+                         channel=n.get("channel", 0))
                 for n in r.get("notes", [])]
 
     # ---- write ----
@@ -163,53 +190,85 @@ class ArdourBridge(Bridge):
             args["instrument_id"] = instrument_id
         if preset:
             args["preset"] = preset
-        r = self._call("create_midi_track", args)
-        return r["track_id"], self._record_action()
+        r = self._mutate("create_midi_track", args)
+        return r["track_id"], self._record_action(r)
 
     def insert_midi_notes(self, track_id: str, notes: list,
                           start_beat: float = 0.0) -> str:
         payload = [{"pitch": n.pitch, "start_beat": n.start_beat + start_beat,
                     "length_beats": n.length_beats, "velocity": n.velocity,
                     "channel": n.channel} for n in notes]
-        self._call("insert_midi_notes", {"track_id": track_id, "notes": payload})
-        return self._record_action()
+        r = self._mutate("insert_midi_notes",
+                         {"track_id": track_id, "notes": payload})
+        return self._record_action(r)
+
+    def replace_midi_notes(self, track_id: str, notes: list,
+                           start_beat: float = 0.0,
+                           end_beat: Optional[float] = None) -> str:
+        # Positions go over the wire as given: absolute, same frame as
+        # get_midi_notes. end_beat None is sent as an absent key, which the
+        # Lua side reads as nil ("to the end").
+        payload = []
+        for n in notes:
+            if isinstance(n, dict):
+                payload.append({"pitch": n["pitch"], "start_beat": n["start_beat"],
+                                "length_beats": n["length_beats"],
+                                "velocity": n.get("velocity", 100),
+                                "channel": n.get("channel", 0)})
+            else:
+                payload.append({"pitch": n.pitch, "start_beat": n.start_beat,
+                                "length_beats": n.length_beats,
+                                "velocity": n.velocity, "channel": n.channel})
+        args = {"track_id": track_id, "notes": payload,
+                "start_beat": start_beat}
+        if end_beat is not None:
+            args["end_beat"] = end_beat
+        r = self._mutate("replace_midi_notes", args)
+        return self._record_action(r)
 
     def set_tempo(self, bpm: float) -> str:
-        self._call("set_tempo", {"bpm": bpm})
-        return self._record_action()
+        r = self._mutate("set_tempo", {"bpm": bpm})
+        return self._record_action(r)
 
     def set_track_gain(self, track_id: str, gain_db: float) -> str:
-        self._call("set_track_gain", {"track_id": track_id, "gain_db": gain_db})
-        return self._record_action()
+        r = self._mutate("set_track_gain",
+                         {"track_id": track_id, "gain_db": gain_db})
+        return self._record_action(r)
 
     def set_track_mute(self, track_id: str, muted: bool) -> str:
-        self._call("set_track_mute", {"track_id": track_id, "muted": muted})
-        return self._record_action()
+        r = self._mutate("set_track_mute",
+                         {"track_id": track_id, "muted": muted})
+        return self._record_action(r)
 
     def add_marker(self, name: str, position_seconds: float) -> str:
-        self._call("add_marker", {"name": name,
-                                  "position_seconds": position_seconds})
-        return self._record_action()
+        r = self._mutate("add_marker", {"name": name,
+                                        "position_seconds": position_seconds})
+        return self._record_action(r)
 
     def import_audio(self, track_id: str, file_path: str,
                      position_seconds: float = 0.0) -> str:
         file_path = self._audio_for_session_rate(file_path)
-        result = self._call("import_audio", {
+        result = self._mutate("import_audio", {
             "track_id": track_id, "file_path": file_path,
             "position_seconds": position_seconds})
         imported_track = result.get("track_id")
         if not imported_track:
             raise RuntimeError("Ardour did not create an audio track")
+        # The bridge journaled the import the moment it succeeded, so it is
+        # recorded now — even if the region check below fails, undo has to
+        # line up with that journal entry.
+        action_id = self._record_action(result)
         deadline = time.time() + self.rpc_timeout
         while time.time() < deadline:
             content = self._call("get_track_content",
                                  {"track_id": imported_track})
             regions = content.get("regions", [])
             if any(r.get("length_samples", 0) > 0 for r in regions):
-                return self._record_action()
+                return action_id
             time.sleep(0.1)
         raise RuntimeError(
-            f"Ardour created '{imported_track}' but its audio region is empty")
+            f"Ardour created '{imported_track}' but its audio region is empty "
+            f"(recorded as action {action_id}, so undo can remove it)")
 
     def _target_sample_rate(self) -> Optional[int]:
         try:
@@ -260,21 +319,34 @@ class ArdourBridge(Bridge):
         self._call("locate", {"seconds": seconds})
 
     # ---- undo ----
+    def _undo_top(self) -> bool:
+        """Ask the bridge to undo its top journal entry, naming it when the
+        bridge gave us its id. False if the bridge refused or had nothing."""
+        top = self._action_seq[-1]
+        args = ({"action_id": top}
+                if top in getattr(self, "_bridge_ids", set()) else {})
+        try:
+            r = self._call("undo", args)
+        except RuntimeError:
+            return False
+        if isinstance(r, dict) and (r.get("error") or r.get("ok") is False):
+            return False
+        self._action_seq.pop()
+        getattr(self, "_bridge_ids", set()).discard(top)
+        return True
+
     def undo(self, action_id: Optional[str] = None) -> bool:
         if action_id is None:
             if not self._action_seq:
                 return False
-            self._action_seq.pop()
-            self._call("undo")
-            return True
+            return self._undo_top()
         if action_id not in self._action_seq:
             return False
-        # undo everything back to and including action_id
-        idx = self._action_seq.index(action_id)
-        n = len(self._action_seq) - idx
-        for _ in range(n):
-            self._call("undo")
-        del self._action_seq[idx:]
+        # undo everything back to and including action_id, newest first;
+        # stop at the first refusal so our record matches what really undid
+        while action_id in self._action_seq:
+            if not self._undo_top():
+                return False
         return True
 
     def save_session(self) -> None:
@@ -284,6 +356,18 @@ class ArdourBridge(Bridge):
     def diagnose_audio(self, track_id: Optional[str] = None) -> dict:
         args = {"track_id": track_id} if track_id else {}
         return self._call("diagnose_audio", args)
+
+    def add_instrument(self, track_id: str) -> dict:
+        # journal=true asks the bridge to journal the plugin change so Stem's
+        # undo can reverse it. Recorded only if the bridge says it did — an
+        # older bridge_impl.lua ignores the flag and journals nothing, and
+        # recording an action for it would knock undo out of line.
+        r = self._mutate("add_instrument",
+                         {"track_id": track_id, "journal": True})
+        r = dict(r or {})
+        if r.get("action_id"):
+            r["action_id"] = self._record_action(r)
+        return r
 
     def fix_silent_instruments(self) -> dict:
         return self._call("fix_silent_instruments", {})
