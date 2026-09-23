@@ -390,8 +390,9 @@ def make_tracks_audible(args, ctx):
     if "action_id" not in result:
         result.setdefault(
             "undo_note",
-            "plugin swaps are not on Stem's undo journal; reverse this with "
-            "Ardour's own undo (Ctrl/Cmd-Z) or by re-adding the old plugin")
+            "plugin swaps are not on Stem's undo journal, and Ardour's own "
+            "undo (Ctrl/Cmd-Z) does not cover plugin changes either; reverse "
+            "this by re-adding the old plugin by hand")
     return result
 
 
