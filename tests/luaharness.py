@@ -23,9 +23,13 @@ import pytest
 
 TESTS_DIR = Path(__file__).resolve().parent
 REPO_ROOT = TESTS_DIR.parent
-BRIDGE_IMPL = REPO_ROOT / "stem" / "bridge" / "bridge_impl.lua"
+# STEM_BRIDGE_IMPL_UNDER_TEST points the behavioural tests at another copy of
+# the bridge (e.g. the pre-fix file) to show which tests fail against it.
+BRIDGE_IMPL = Path(os.environ.get("STEM_BRIDGE_IMPL_UNDER_TEST")
+                   or (REPO_ROOT / "stem" / "bridge" / "bridge_impl.lua"))
 MOCK_ARDOUR = TESTS_DIR / "lua" / "mock_ardour.lua"
 RUN_CALL = TESTS_DIR / "lua" / "run_call.lua"
+RUN_SCRIPT = TESTS_DIR / "lua" / "run_script.lua"
 
 
 def lua_binary():
@@ -104,23 +108,7 @@ def call_bridge(tmp_path, method, args=None, **profile):
     args_file = home / "args.json"
     args_file.write_text(json.dumps(args or {}))
 
-    env = dict(os.environ)
-    env["HOME"] = str(home)
-    env["STEM_MOCK_ARDOUR"] = str(profile.get("ardour", "9"))
-    if profile.get("fork"):
-        env["STEM_MOCK_FORK"] = "1"
-    if profile.get("no_editor"):
-        env["STEM_MOCK_NO_EDITOR"] = "1"
-    if profile.get("qpm_fails"):
-        env["STEM_MOCK_QPM_FAILS"] = "1"
-    if profile.get("tempo_at_ok"):
-        env["STEM_MOCK_TEMPO_AT_OK"] = "1"
-    if profile.get("marker_fails"):
-        env["STEM_MOCK_MARKER_FAILS"] = "1"
-    if "bpm" in profile:
-        env["STEM_MOCK_BPM"] = str(profile["bpm"])
-    if "sample_rate" in profile:
-        env["STEM_MOCK_SR"] = str(profile["sample_rate"])
+    env = _mock_env(home, profile)
 
     proc = subprocess.run(
         [lua, str(RUN_CALL), str(MOCK_ARDOUR), str(BRIDGE_IMPL),
@@ -141,6 +129,118 @@ def call_bridge(tmp_path, method, args=None, **profile):
     calls_path = home / ".stem" / "calls.txt"
     calls = calls_path.read_text().splitlines() if calls_path.exists() else []
     return BridgeResult(raw, calls)
+
+
+def _mock_env(home, profile):
+    env = dict(os.environ)
+    env["HOME"] = str(home)
+    env["STEM_MOCK_ARDOUR"] = str(profile.get("ardour", "9"))
+    if profile.get("fork"):
+        env["STEM_MOCK_FORK"] = "1"
+    if profile.get("no_editor"):
+        env["STEM_MOCK_NO_EDITOR"] = "1"
+    if profile.get("qpm_fails"):
+        env["STEM_MOCK_QPM_FAILS"] = "1"
+    if profile.get("tempo_at_ok"):
+        env["STEM_MOCK_TEMPO_AT_OK"] = "1"
+    if profile.get("marker_fails"):
+        env["STEM_MOCK_MARKER_FAILS"] = "1"
+    if "bpm" in profile:
+        env["STEM_MOCK_BPM"] = str(profile["bpm"])
+    if "sample_rate" in profile:
+        env["STEM_MOCK_SR"] = str(profile["sample_rate"])
+
+    if profile.get("rt_queue"):
+        env["STEM_MOCK_RT_QUEUE"] = "1"
+    if profile.get("set_tempo_fails"):
+        env["STEM_MOCK_SET_TEMPO_FAILS"] = "1"
+    if profile.get("diff_apply_fails"):
+        env["STEM_MOCK_DIFF_APPLY_FAILS"] = "1"
+    return env
+
+
+def _lua_literal(value):
+    """Python -> Lua table literal (None keys are dropped: absent == nil)."""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return repr(value)
+    if isinstance(value, str):
+        return "[==[" + value + "]==]"
+    if isinstance(value, dict):
+        items = [f"[ {_lua_literal(k)} ]={_lua_literal(v)}"
+                 for k, v in value.items() if v is not None]
+        return "{" + ",".join(items) + "}"
+    if isinstance(value, (list, tuple)):
+        return "{" + ",".join(_lua_literal(v) for v in value) + "}"
+    raise TypeError(f"cannot express {value!r} in Lua")
+
+
+class Step:
+    """One step of a scripted session: .response (parsed or None), .state."""
+
+    def __init__(self, record):
+        self.kind = record["kind"]
+        self.response = record["response"]
+        self.state = record["state"]
+
+    @property
+    def result(self):
+        return (self.response or {}).get("result")
+
+    @property
+    def error(self):
+        return (self.response or {}).get("error")
+
+    def track(self, name):
+        for r in self.state["routes"]:
+            if r["name"] == name:
+                return r
+        return None
+
+    def notes(self, name):
+        r = self.track(name)
+        if not r or not r["regions"]:
+            return []
+        return r["regions"][0]["notes"]
+
+
+def call(method, args=None):
+    """A bridge request step. args go through json.dumps, so None becomes
+    null; drop a key to send it absent."""
+    return {"kind": "call", "method": method, "json": json.dumps(args or {})}
+
+
+def user(fn, **args):
+    """A user's own GUI edit (tests/lua/mock_ardour.lua USER.*)."""
+    return {"kind": "user", "fn": fn, "args": args}
+
+
+RELOAD = {"kind": "reload"}
+FLUSH = {"kind": "flush"}
+
+
+def run_script(tmp_path, steps, **profile):
+    """Run a whole sequence in ONE Lua state; returns [Step, ...] and calls."""
+    lua = lua_binary()
+    assert lua, "run_script used without Lua; guard the test with @requires_lua"
+    home = Path(tmp_path) / "home"
+    (home / ".stem").mkdir(parents=True, exist_ok=True)
+    steps_file = home / "steps.lua"
+    steps_file.write_text("return " + _lua_literal(list(steps)) + "\n")
+    env = _mock_env(home, profile)
+    proc = subprocess.run(
+        [lua, str(RUN_SCRIPT), str(MOCK_ARDOUR), str(BRIDGE_IMPL), str(steps_file)],
+        capture_output=True, text=True, env=env, cwd=str(REPO_ROOT), timeout=60,
+    )
+    assert proc.returncode == 0, (
+        f"lua script harness failed:\nstdout: {proc.stdout}\nstderr: {proc.stderr}"
+    )
+    lines = (home / ".stem" / "script_out.jsonl").read_text().splitlines()
+    out = [Step(json.loads(line)) for line in lines]
+    calls_path = home / ".stem" / "calls.txt"
+    calls = calls_path.read_text().splitlines() if calls_path.exists() else []
+    return out, calls
 
 
 def strip_lua_comments(text):
