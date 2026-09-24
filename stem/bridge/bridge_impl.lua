@@ -439,12 +439,21 @@ end
 -- (history_owner.cc:68). If something (a plugin GUI, another script) has left
 -- a command open with work in it, refuse up front rather than destroy that
 -- work. collected_undo_commands is bound in both (8.12 luabindings.cc:3121,
--- 9.8 :536). It reads 0 for an open-but-empty command, which this cannot see.
+-- 9.8 :536).
+--
+-- LIVE FIX: it returns a BOOLEAN (true = an open command holds changes), not
+-- a count. Measured in real Ardour 8.12 and 9.8: `type(...)` is "boolean",
+-- false with nothing open and for an open-but-empty command, true once a diff
+-- is added. The old `type (n) == "number" and n > 0` test was therefore never
+-- true, the guard never fired, and a Stem edit went ahead over the user's
+-- open command (which did not survive: collected went true -> false). A
+-- number is still accepted, in case a build ever returns a count.
 local function assert_no_open_command ()
     local ok, n = pcall (function () return Session:collected_undo_commands () end)
-    if ok and type (n) == "number" and n > 0 then
-        fail ("Ardour has an unfinished edit open (" .. n .. " pending undo "
-              .. "command(s)); finish or cancel it before Stem edits the session")
+    if not ok then return end
+    if n == true or (type (n) == "number" and n > 0) then
+        fail ("Ardour has an unfinished edit open (a reversible command that already "
+              .. "holds changes); finish or cancel it before Stem edits the session")
     end
 end
 
@@ -615,17 +624,48 @@ local function samples_for_beats (beats)
     return math.ceil ((beats + 1) * (60.0 / tempo_bpm ()) * sample_rate ())
 end
 
--- Grow a region as its own reversible command (region length is a Stateful
--- property; StatefulDiffCommand is Ardour's record for it). Returns the old
--- length in samples.
+-- A length for region:set_length in the REGION'S OWN time domain.
+--
+-- LIVE FIX: MIDI regions keep their length in beat time (real Ardour 8.12 and
+-- 9.8: region:length():str() reads "b9600@b0", time_domain() == BeatTime).
+-- set_length with an audio-time timecnt_t (Temporal.timecnt_t (samples)) is
+-- accepted without error and silently does nothing on such a region, so
+-- "growing" the region to fit notes past its end left it at its old length and
+-- those notes were written outside it: invisible and inaudible. A beat-time
+-- count (Temporal.timecnt_t.from_ticks, bound in both) is honoured. Samples
+-- convert to ticks at the session tempo, the same constant-tempo assumption
+-- samples_for_beats makes.
+local function length_for_region (region, samples)
+    local beat_domain = false
+    pcall (function ()
+        beat_domain = region:length ():time_domain () == Temporal.TimeDomain.BeatTime
+    end)
+    if beat_domain then
+        local ticks = math.floor (samples * tempo_bpm () * TPB / (60.0 * sample_rate ()) + 0.5)
+        return Temporal.timecnt_t.from_ticks (to_int (ticks), region:position ())
+    end
+    return Temporal.timecnt_t (samples)
+end
+
+-- Grow (or shrink back) a region as its own reversible command (region length
+-- is a Stateful property; StatefulDiffCommand is Ardour's record for it).
+-- Returns the old length and the length actually reached, both in samples.
+-- A set_length that does not take is an error, never a silent no-op: the
+-- transaction then rolls back and the caller writes nothing.
 local function extend_region (region, samples, label)
     local old = region:length ():samples ()
+    local tolerance = math.ceil (sample_rate () * 60.0 / (tempo_bpm () * TPB)) + 1  -- one tick
     in_transaction (label, function (tx)
         tx.before (region)
-        region:set_length (Temporal.timecnt_t (samples))
+        region:set_length (length_for_region (region, samples))
+        local now = region:length ():samples ()
+        if math.abs (now - samples) > tolerance then
+            error (string.format ("Ardour did not resize the MIDI region (asked for %d samples, "
+                .. "it is still %d)", samples, now), 0)
+        end
         tx.after (region)
     end)
-    return old
+    return old, region:length ():samples ()
 end
 
 local function remove_region_reversibly (mt, region, label)
@@ -783,6 +823,19 @@ local function audible_default_info ()
     return nil
 end
 
+-- "No route group" for Session:new_midi_track. The parameter is RouteGroup*
+-- in 8.x, where nil is the null pointer (8.12's own share/scripts/
+-- add_audio_track.lua passes nil) and ARDOUR.RouteGroup is not callable
+-- ("attempt to call a table value (field 'RouteGroup')"). In 9.x it is
+-- shared_ptr<RouteGroup>: a bare nil there made real Ardour 9.8 segfault
+-- ("ArdourGUI: segfault at 0 ... in libardour.so.3.0.0"), and 9.8's own
+-- scripts pass ARDOUR.RouteGroup (), the bound nil-shared_ptr constructor.
+local function no_route_group ()
+    local ok, g = pcall (function () return ARDOUR.RouteGroup () end)
+    if ok and g ~= nil then return g end
+    return nil
+end
+
 function handlers.create_midi_track (args)
     local name         = args.name or "Stem MIDI"
     local requested_id = args.instrument_id or ""
@@ -829,12 +882,13 @@ function handlers.create_midi_track (args)
     -- omitted; LuaBridge's Stack<bool>::get on a missing index is
     -- lua_toboolean(none) == false (libs/lua/LuaBridge/detail/Stack.h:607), which
     -- is the C++ default. The 6th parameter changed C++ type between 8 and 9
-    -- (RouteGroup* -> shared_ptr<RouteGroup>) but nil is correct for both.
+    -- (RouteGroup* -> shared_ptr<RouteGroup>): see no_route_group() — a bare
+    -- nil there segfaults real Ardour 9.8.
     local tl = Session:new_midi_track (
         ARDOUR.ChanCount (ARDOUR.DataType ("midi"), 1),
         ARDOUR.ChanCount (ARDOUR.DataType ("audio"), 2),
         true, instrument, nil,
-        nil, 1, name, ARDOUR.PresentationInfo.max_order,
+        no_route_group (), 1, name, ARDOUR.PresentationInfo.max_order,
         ARDOUR.TrackMode.Normal, true)
 
     for t in tl:iter () do
@@ -1148,8 +1202,8 @@ function handlers.repair_midi_region (args)
             if region:length ():samples () < samples then
                 -- was a bare set_length: invisible to Ardour's undo. Now a
                 -- StatefulDiffCommand in a named command, like a GUI trim.
-                local old = extend_region (region, samples, "Stem: repair MIDI region")
-                undo_steps[#undo_steps + 1] = { region = region, old = old, new = samples }
+                local old, reached = extend_region (region, samples, "Stem: repair MIDI region")
+                undo_steps[#undo_steps + 1] = { region = region, old = old, new = reached }
                 repaired = repaired + 1
             end
         end
@@ -1200,8 +1254,7 @@ local function get_or_make_region (route, mt, beats_needed)
     local region, mr = first_midi_region (mt)
     if region then
         if region:length ():samples () < required_samples then
-            info.old_len = extend_region (region, required_samples, "Stem: extend MIDI region")
-            info.new_len = required_samples
+            info.old_len, info.new_len = extend_region (region, required_samples, "Stem: extend MIDI region")
         end
         return mr, nil, info, region
     end

@@ -192,7 +192,11 @@ function tpos:samples() return self.s end
 local function mktpos(s) return setmetatable({s=s},tpos) end
 local tcnt = {} ; tcnt.__index = tcnt
 function tcnt:samples() return self.s end
-local function mktcnt(s) return setmetatable({s=s},tcnt) end
+-- domain: 0 = AudioTime, 1 = BeatTime (the values real 8.12 / 9.8 report for
+-- Temporal.TimeDomain.AudioTime / .BeatTime)
+function tcnt:time_domain() return self.domain or 0 end
+function tcnt:str() return (self.domain == 1 and "b" or "a") .. tostring(self.ticks or self.s) end
+local function mktcnt(s, domain, ticks) return setmetatable({s=s, domain=domain, ticks=ticks},tcnt) end
 
 local function mk_tempomap(get_bpm, set_bpm)
   return {
@@ -230,7 +234,14 @@ Temporal = {
              "Temporal.Beats(int32, int32): got " .. tostring(w) .. ", " .. tostring(t))
       return mkbeats_ticks(w*1920 + t) end}),
   timepos_t = setmetatable({}, {__call=function(_,s) return mktpos(s) end}),
-  timecnt_t = setmetatable({}, {__call=function(_,s) return mktcnt(s) end}),
+  timecnt_t = setmetatable({
+      -- a beat-time count (bound in both 8.12 and 9.8)
+      from_ticks = function(ticks, pos)
+          assert(math.type(ticks) == "integer", "timecnt_t.from_ticks(int64): got " .. tostring(ticks))
+          return mktcnt(math.floor(ticks * SR * 60.0 / (BPM * 1920) + 0.5), 1, ticks)
+      end,
+    }, {__call=function(_,s) return mktcnt(s, 0) end}),
+  TimeDomain = { AudioTime = 0, BeatTime = 1 },
   Tempo = setmetatable({}, {__call=function(_,npm,enpm,nt) return {npm=npm} end}),
   TempoMap = {
     read = function() return live_map end,
@@ -314,8 +325,18 @@ local function mkregion(len_samples)
   r = {
     name=function() return "Stem Region" end,
     position=function() return mktpos(0) end,
-    length=function() return mktcnt(r._len) end,
-    set_length=function(self,c) rec("region:set_length="..tostring(c.s)) r._len=c.s end,
+    -- MIDI regions keep their length in BEAT time. Measured in real Ardour
+    -- 8.12 and 9.8: length():str() is "b<ticks>@b0" and set_length() with an
+    -- AUDIO-time count is accepted without error and changes nothing. Only a
+    -- beat-time count (timecnt_t.from_ticks) resizes the region.
+    length=function() return mktcnt(r._len, 1) end,
+    set_length=function(self,c)
+        if (c.domain or 0) ~= 1 then
+            rec("region:set_length IGNORED (audio-time count on a beat-time region)="..tostring(c.s))
+            return
+        end
+        rec("region:set_length="..tostring(c.s)) r._len=c.s
+    end,
     to_midiregion=function() return r end,
     isnil=function() return false end,
     model=function() return mdl end,
@@ -466,7 +487,10 @@ Session = {
      if not HISTORY.cur or #HISTORY.cur.cmds == 0 then HISTORY.cur = nil return true end
      return false
   end,
-  collected_undo_commands=function() return HISTORY.cur and #HISTORY.cur.cmds or 0 end,
+  -- A BOOLEAN, not a count (session.h: `bool collected_undo_commands () const`).
+  -- Measured in real Ardour 8.12 and 9.8: false with nothing open or an open
+  -- but empty command, true once the open command holds a change.
+  collected_undo_commands=function() return HISTORY.cur ~= nil and #HISTORY.cur.cmds > 0 end,
   add_command=function(self, cmd) hist_add(cmd) end,
   add_stateful_diff_command=function(self, obj)
      rec("add_stateful_diff_command")
@@ -479,6 +503,16 @@ Session = {
   master_out=function() return nilptr() end,
   locations=function() return locations end,
   new_midi_track=function(self, ci, co, strict, inst, pset, grp, howmany, name, order, mode, autoconn)
+     -- The route-group parameter is RouteGroup* in 8.x (nil = no group) and
+     -- shared_ptr<RouteGroup> in 9.x, where a bare nil made real Ardour 9.8
+     -- segfault ("segfault at 0 ... in libardour.so"). A mock cannot crash the
+     -- host, so it raises instead; 9.x wants ARDOUR.RouteGroup ().
+     if ARDOUR_MAJOR == "9" and grp == nil then
+        error("SIMULATED CRASH: Ardour 9 segfaults on a nil shared_ptr<RouteGroup> in new_midi_track")
+     end
+     if ARDOUR_MAJOR ~= "9" and grp ~= nil then
+        error("new_midi_track: argument 6 must be RouteGroup* (nil) on Ardour 8")
+     end
      rec(string.format("new_midi_track name=%s howmany=%s strict=%s",
          tostring(name), tostring(howmany), tostring(strict)))
      local t = mkroute(name,"midi")
@@ -543,6 +577,12 @@ ARDOUR = {
           dB_to_coefficient=function(d) return 10 ^ (d / 20) end },
   ChanCount=function() return {} end, DataType=function() return {} end,
   PluginInfo=function() return nilptr() end,
+  -- 9.x: ARDOUR.RouteGroup () is the bound nil-shared_ptr constructor (9.8's
+  -- share/scripts/add_audio_track.lua passes it). 8.x: not callable
+  -- ("attempt to call a table value (field 'RouteGroup')", measured on 8.12).
+  RouteGroup=(ARDOUR_MAJOR == "9")
+      and setmetatable({}, {__call=function() return nilptr() end})
+      or {},
   Track=function() return nilptr() end,
   PluginType={ LV2=1, name=function(t,short) return "LV2" end },
   PresentationInfo={ max_order=4294967295 },

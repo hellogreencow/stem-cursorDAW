@@ -203,6 +203,8 @@ class NoteSpec(BaseModel):
     start_beat: float = Field(ge=0)
     length_beats: float = Field(gt=0)
     velocity: int = Field(default=100, ge=1, le=127)
+    channel: int = Field(default=0, ge=0, le=15,
+                         description="MIDI channel 0-15 (9 = GM drums)")
 
 
 class InsertNotes(BaseModel):
@@ -218,7 +220,8 @@ class InsertNotes(BaseModel):
                    InsertNotes, mutates=True)
 def insert_midi_notes(args, ctx):
     notes = [MidiNote(pitch=n.pitch, start_beat=n.start_beat,
-                      length_beats=n.length_beats, velocity=n.velocity)
+                      length_beats=n.length_beats, velocity=n.velocity,
+                      channel=n.channel)
              for n in args.notes]
     action_id = ctx.bridge.insert_midi_notes(args.track_id, notes,
                                              args.start_beat)
