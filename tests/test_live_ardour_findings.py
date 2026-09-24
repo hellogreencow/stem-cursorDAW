@@ -51,3 +51,37 @@ def test_insert_refuses_while_a_user_command_holds_changes(tmp_path):
     assert failed.state["history"]["warnings"] == []
     assert failed.track("Chords")["regions"] == before.track("Chords")["regions"]
     assert failed.state["journal_depth"] == 0
+
+
+# ----------------------------------------------------------------------
+# 2. MIDI region length is beat time; an audio-time set_length is ignored
+# ----------------------------------------------------------------------
+# Live, 8.12 (user-drawn region) and 9.8 (region made by the bridge): the
+# region length reads "b9600@b0"; region:set_length(Temporal.timecnt_t(456000))
+# returned without error and left it at b9600, so a note at beat 16 was written
+# past the region end (invisible, inaudible). timecnt_t.from_ticks(...) works.
+
+@requires_lua
+def test_notes_past_the_region_end_really_grow_the_region(tmp_path):
+    steps, _ = run_script(tmp_path, USER_REGION + [
+        call("ping"),
+        call("insert_midi_notes", {"track_id": "Chords", "notes": [dict(N1, start_beat=40.0)]}),
+    ])
+    grown = steps[-1]
+    assert grown.error is None, grown.error
+    region = grown.track("Chords")["regions"][0]
+    # the note ends at beat 41: 41 * 24000 samples at 120 bpm / 48 kHz
+    assert region["length"] >= 41 * 24000
+
+
+@requires_lua
+def test_undo_shrinks_the_grown_region_back(tmp_path):
+    steps, _ = run_script(tmp_path, USER_REGION + [
+        call("ping"),
+        call("insert_midi_notes", {"track_id": "Chords", "notes": [dict(N1, start_beat=40.0)]}),
+        call("undo"),
+    ])
+    before, undone = steps[-3], steps[-1]
+    assert undone.result["undone"] is True, undone.result
+    assert undone.track("Chords")["regions"] == before.track("Chords")["regions"]
+    assert undone.track("Chords")["regions"][0]["length"] == 480000

@@ -624,17 +624,48 @@ local function samples_for_beats (beats)
     return math.ceil ((beats + 1) * (60.0 / tempo_bpm ()) * sample_rate ())
 end
 
--- Grow a region as its own reversible command (region length is a Stateful
--- property; StatefulDiffCommand is Ardour's record for it). Returns the old
--- length in samples.
+-- A length for region:set_length in the REGION'S OWN time domain.
+--
+-- LIVE FIX: MIDI regions keep their length in beat time (real Ardour 8.12 and
+-- 9.8: region:length():str() reads "b9600@b0", time_domain() == BeatTime).
+-- set_length with an audio-time timecnt_t (Temporal.timecnt_t (samples)) is
+-- accepted without error and silently does nothing on such a region, so
+-- "growing" the region to fit notes past its end left it at its old length and
+-- those notes were written outside it: invisible and inaudible. A beat-time
+-- count (Temporal.timecnt_t.from_ticks, bound in both) is honoured. Samples
+-- convert to ticks at the session tempo, the same constant-tempo assumption
+-- samples_for_beats makes.
+local function length_for_region (region, samples)
+    local beat_domain = false
+    pcall (function ()
+        beat_domain = region:length ():time_domain () == Temporal.TimeDomain.BeatTime
+    end)
+    if beat_domain then
+        local ticks = math.floor (samples * tempo_bpm () * TPB / (60.0 * sample_rate ()) + 0.5)
+        return Temporal.timecnt_t.from_ticks (to_int (ticks), region:position ())
+    end
+    return Temporal.timecnt_t (samples)
+end
+
+-- Grow (or shrink back) a region as its own reversible command (region length
+-- is a Stateful property; StatefulDiffCommand is Ardour's record for it).
+-- Returns the old length and the length actually reached, both in samples.
+-- A set_length that does not take is an error, never a silent no-op: the
+-- transaction then rolls back and the caller writes nothing.
 local function extend_region (region, samples, label)
     local old = region:length ():samples ()
+    local tolerance = math.ceil (sample_rate () * 60.0 / (tempo_bpm () * TPB)) + 1  -- one tick
     in_transaction (label, function (tx)
         tx.before (region)
-        region:set_length (Temporal.timecnt_t (samples))
+        region:set_length (length_for_region (region, samples))
+        local now = region:length ():samples ()
+        if math.abs (now - samples) > tolerance then
+            error (string.format ("Ardour did not resize the MIDI region (asked for %d samples, "
+                .. "it is still %d)", samples, now), 0)
+        end
         tx.after (region)
     end)
-    return old
+    return old, region:length ():samples ()
 end
 
 local function remove_region_reversibly (mt, region, label)
@@ -1157,8 +1188,8 @@ function handlers.repair_midi_region (args)
             if region:length ():samples () < samples then
                 -- was a bare set_length: invisible to Ardour's undo. Now a
                 -- StatefulDiffCommand in a named command, like a GUI trim.
-                local old = extend_region (region, samples, "Stem: repair MIDI region")
-                undo_steps[#undo_steps + 1] = { region = region, old = old, new = samples }
+                local old, reached = extend_region (region, samples, "Stem: repair MIDI region")
+                undo_steps[#undo_steps + 1] = { region = region, old = old, new = reached }
                 repaired = repaired + 1
             end
         end
@@ -1209,8 +1240,7 @@ local function get_or_make_region (route, mt, beats_needed)
     local region, mr = first_midi_region (mt)
     if region then
         if region:length ():samples () < required_samples then
-            info.old_len = extend_region (region, required_samples, "Stem: extend MIDI region")
-            info.new_len = required_samples
+            info.old_len, info.new_len = extend_region (region, required_samples, "Stem: extend MIDI region")
         end
         return mr, nil, info, region
     end

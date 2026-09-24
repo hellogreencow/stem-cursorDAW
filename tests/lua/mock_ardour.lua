@@ -192,7 +192,11 @@ function tpos:samples() return self.s end
 local function mktpos(s) return setmetatable({s=s},tpos) end
 local tcnt = {} ; tcnt.__index = tcnt
 function tcnt:samples() return self.s end
-local function mktcnt(s) return setmetatable({s=s},tcnt) end
+-- domain: 0 = AudioTime, 1 = BeatTime (the values real 8.12 / 9.8 report for
+-- Temporal.TimeDomain.AudioTime / .BeatTime)
+function tcnt:time_domain() return self.domain or 0 end
+function tcnt:str() return (self.domain == 1 and "b" or "a") .. tostring(self.ticks or self.s) end
+local function mktcnt(s, domain, ticks) return setmetatable({s=s, domain=domain, ticks=ticks},tcnt) end
 
 local function mk_tempomap(get_bpm, set_bpm)
   return {
@@ -230,7 +234,14 @@ Temporal = {
              "Temporal.Beats(int32, int32): got " .. tostring(w) .. ", " .. tostring(t))
       return mkbeats_ticks(w*1920 + t) end}),
   timepos_t = setmetatable({}, {__call=function(_,s) return mktpos(s) end}),
-  timecnt_t = setmetatable({}, {__call=function(_,s) return mktcnt(s) end}),
+  timecnt_t = setmetatable({
+      -- a beat-time count (bound in both 8.12 and 9.8)
+      from_ticks = function(ticks, pos)
+          assert(math.type(ticks) == "integer", "timecnt_t.from_ticks(int64): got " .. tostring(ticks))
+          return mktcnt(math.floor(ticks * SR * 60.0 / (BPM * 1920) + 0.5), 1, ticks)
+      end,
+    }, {__call=function(_,s) return mktcnt(s, 0) end}),
+  TimeDomain = { AudioTime = 0, BeatTime = 1 },
   Tempo = setmetatable({}, {__call=function(_,npm,enpm,nt) return {npm=npm} end}),
   TempoMap = {
     read = function() return live_map end,
@@ -314,8 +325,18 @@ local function mkregion(len_samples)
   r = {
     name=function() return "Stem Region" end,
     position=function() return mktpos(0) end,
-    length=function() return mktcnt(r._len) end,
-    set_length=function(self,c) rec("region:set_length="..tostring(c.s)) r._len=c.s end,
+    -- MIDI regions keep their length in BEAT time. Measured in real Ardour
+    -- 8.12 and 9.8: length():str() is "b<ticks>@b0" and set_length() with an
+    -- AUDIO-time count is accepted without error and changes nothing. Only a
+    -- beat-time count (timecnt_t.from_ticks) resizes the region.
+    length=function() return mktcnt(r._len, 1) end,
+    set_length=function(self,c)
+        if (c.domain or 0) ~= 1 then
+            rec("region:set_length IGNORED (audio-time count on a beat-time region)="..tostring(c.s))
+            return
+        end
+        rec("region:set_length="..tostring(c.s)) r._len=c.s
+    end,
     to_midiregion=function() return r end,
     isnil=function() return false end,
     model=function() return mdl end,
