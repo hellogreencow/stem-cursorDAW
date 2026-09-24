@@ -111,9 +111,11 @@ def test_marker_failure_leaves_no_open_undo_command(tmp_path):
                       {"position_seconds": 4, "name": "Drop"},
                       marker_fails=True)
 
-    # it must fail cleanly and legibly...
-    assert res.handler_error, f"expected an error payload, got {res.raw!r}"
-    assert "add marker failed" in res.handler_error
+    # it must fail cleanly and legibly... (as a dispatch-level error since the
+    # undo work: a failed mutation raises, so ArdourBridge._call raises and
+    # records no action id — see test_bridge_undo.py)
+    assert res.error, f"expected an error payload, got {res.raw!r}"
+    assert "add marker failed" in res.error
 
     # ...and, the point of the test, with the undo stack untouched
     begins = [c for c in res.calls if c.startswith("BEGIN:")]
@@ -185,7 +187,15 @@ def test_tempo_is_read_through_quarters_per_minute_at_first():
     # 120 bpm default must be the last resort rather than an early return
     assert tempo_reader.index("quarters_per_minute_at") < tempo_reader.index(
         "tempo_at"), "the correct read must be tried before the TempoPoint cast"
-    assert tempo_reader.rstrip().endswith("return 120.0\nend"), (
+    # Since the undo work the reader returns nil when both real reads fail
+    # (set_tempo needs to KNOW the prior tempo to be undoable), and tempo_bpm
+    # wraps it with the 120 default for lengths and reports.
+    assert tempo_reader.rstrip().endswith("return nil\nend"), (
+        "the reader must fall through to 'unknown' only after both real reads"
+    )
+    wrapper = source.split("local function tempo_bpm ()", 1)[1].split(
+        "\nlocal function ", 1)[0]
+    assert "tempo_bpm_read () or 120.0" in wrapper, (
         "120 bpm must be the final fallback, reached only after both real reads"
     )
 
@@ -326,7 +336,8 @@ def test_control_characters_in_user_input_round_trip(tmp_path):
     """
     nasty = 'weird"\\name\n\twith\x01control'
     res = call_bridge(tmp_path, "delete_track", {"track_id": nasty})
-    assert res.handler_error == f"track not found: {nasty}"
+    # (a failed mutation is a dispatch-level error since the undo work)
+    assert res.error == f"track not found: {nasty}"
 
 
 @requires_lua
@@ -344,7 +355,7 @@ def test_non_ascii_names_survive_the_round_trip(tmp_path, name):
     "Caf?". Nothing in the suite noticed, because nothing ran the decoder.
     """
     res = call_bridge(tmp_path, "delete_track", {"track_id": name})
-    assert res.handler_error == f"track not found: {name}", (
+    assert res.error == f"track not found: {name}", (
         "non-ASCII input was mangled crossing the Python/Lua boundary"
     )
 
@@ -355,3 +366,26 @@ def test_numbers_are_json_numbers_not_lua_floats(tmp_path):
     res = call_bridge(tmp_path, "get_session_overview")
     assert '"sample_rate":48000' in res.raw.replace(" ", "")
     assert "inf" not in res.raw and "nan" not in res.raw
+
+
+# ======================================================================
+# 5. undo model — source invariants (behaviour: tests/test_bridge_undo.py)
+# ======================================================================
+
+def test_bridge_never_calls_editor_undo():
+    """Lua cannot see Ardour's undo history (no undo_depth / next_undo bound in
+    8.12 or 9.8), so Editor:undo(n) pops whatever is on top — including the
+    user's own edits. The bridge undoes through its journal instead."""
+    code = strip_lua_comments(BRIDGE_IMPL.read_text())
+    assert "Editor:undo" not in code
+    assert "Editor:redo" not in code
+
+
+def test_bridge_uses_no_global_that_ardours_sandbox_removes():
+    """Ardour's Lua sandbox sets rawget, rawset, dofile, require, package,
+    debug and coroutine to nil (libs/lua/luastate.cc:99 in 9.8). A chunk-level
+    call to any of them would stop the bridge loading at all."""
+    code = strip_lua_comments(BRIDGE_IMPL.read_text())
+    for name in ("rawget", "rawset", "dofile", "require", "package", "debug",
+                 "coroutine"):
+        assert re.search(r"\b%s\b" % name, code) is None, name

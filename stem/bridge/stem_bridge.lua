@@ -22,6 +22,13 @@
 -- compiled and run once, the resulting dispatch function is cached, and a
 -- reload only happens when you ask for one (touch ~/.stem/reload) or every
 -- STEM_RELOAD_SECONDS as a safety net.
+--
+-- DISPATCH is by name in bridge_impl.lua (handlers[req.method]), so a new
+-- handler such as replace_midi_notes needs no change here. The undo journal
+-- (bridge_impl.lua, "UNDO") is kept in the global STEM_UNDO_JOURNAL precisely
+-- so that the reloads below do not wipe it: loadfile() runs the chunk in this
+-- script's own Lua state, and its globals persist across re-runs. Only an
+-- Ardour restart clears it (then undo says there is nothing left to undo).
 
 ardour {
     ["type"]    = "EditorHook",

@@ -138,20 +138,27 @@ def test_midi_region_creation_prefers_fork_helper_and_explains_when_it_cannot():
 
 def test_midi_note_insert_commits_through_the_model_not_a_manual_command():
     handler = handler_source("insert_midi_notes", code_only=True)
+    helper = strip_lua_comments(BRIDGE_IMPL.read_text()).split(
+        "local function apply_note_diff", 1)[1].split("\nend", 1)[0]
 
     # was: assert "mm:apply_command(Session, cmd)" in insert_handler
     # apply_command is marked deprecated in Ardour's binding source ("left here
     # in case any extant scripts use apply_command"). The current call is
     # apply_diff_command_as_commit. Both are bound on 8.12 and 9.8, so the
     # bridge uses the current one and keeps the deprecated one as fallback.
-    # The test now names the behaviour rather than one exact byte sequence.
-    assert "apply_diff_command_as_commit" in handler
-    assert "apply_command" in handler, "keep the fallback for older builds"
+    # Since the undo work the note handlers share one helper for it
+    # (apply_note_diff, also used by replace_midi_notes and by undo itself).
+    assert "apply_note_diff" in handler
+    assert "apply_diff_command_as_commit" in helper
+    assert "apply_command" in helper, "keep the fallback for older builds"
 
     # unchanged, and still the important half: the MidiModel command carries
-    # its own undo record, so the handler must not open one around it.
-    assert "begin_reversible_command" not in handler
-    assert "commit_reversible_command" not in handler
+    # its own undo record, so neither the handler nor the helper may open one
+    # around it — Ardour aborts BOTH when a command is begun inside another
+    # (session_state.cc:3382 in 8.12, history_owner.cc:68 in 9.8).
+    for text in (handler, helper):
+        assert "begin_reversible_command" not in text
+        assert "commit_reversible_command" not in text
 
 
 # --- behavioural: the same four claims, executed ----------------------------
@@ -211,7 +218,9 @@ def test_ardour_8_degrades_with_a_specific_parseable_reason(tmp_path):
                        "notes": [{"pitch": 60, "start_beat": 0,
                                   "length_beats": 1, "velocity": 90}]},
                       ardour="8")
-    message = res.handler_error
+    # a failed mutation now raises (dispatch-level error) so the Python side
+    # records no undo action for it; the reason text is unchanged
+    message = res.error
     assert message, res.raw
     assert "MidiTimeAxisView" in message
     assert "Ardour 9" in message
