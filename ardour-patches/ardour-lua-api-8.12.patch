@@ -1,0 +1,401 @@
+# ARDOUR.LuaAPI: ensure_midi_region, set_session_tempo, import_audio_file
+#
+# Upstream:   https://github.com/Ardour/Ardour
+# Tag:        8.12
+# Commit:     10517bff2b2c7b882b453296a939cf5d03174831
+# Committed:  2025-03-09 11:56:16 -0600
+# Generated:  2026-09-22T00:03:22Z by `git diff` against a pristine checkout of that tag.
+#
+# Adds three functions to the ARDOUR.LuaAPI Lua namespace, implemented entirely
+# in libardour with no gtk2_ardour/GUI dependency, so they are reachable from
+# session scripts, EditorHook scripts and the Lua console alike.
+#
+#   ensure_midi_region (Session*, shared_ptr<MidiTrack>, double beats)
+#       -> shared_ptr<MidiRegion>   find-or-create an empty MIDI region
+#   set_session_tempo  (Session*, double bpm) -> bool
+#       full TempoMap write_copy/update transaction + an undoable TempoCommand
+#   import_audio_file  (Session*, string path, samplepos_t pos) -> string
+#       synchronous Session::import_files onto a newly created track
+#
+# libs/ardour/lua_api.cc was verified to compile against this tag's headers
+# with `g++ -std=c++17 -fsyntax-only`. No full Ardour build was performed and
+# nothing was executed in a live Ardour session. See IMPLEMENTATION.md.
+#
+# Apply from the root of the checkout:  git apply ardour-lua-api.patch
+#
+diff --git a/libs/ardour/ardour/lua_api.h b/libs/ardour/ardour/lua_api.h
+index 9c97d9e..f84d2b4 100644
+--- a/libs/ardour/ardour/lua_api.h
++++ b/libs/ardour/ardour/lua_api.h
+@@ -62,6 +62,55 @@ namespace ARDOUR { namespace LuaAPI {
+ 	 */
+ 	std::shared_ptr<Processor> new_send (Session* s, std::shared_ptr<ARDOUR::Route> r, std::shared_ptr<ARDOUR::Processor> p);
+ 
++	/** Find or create an empty MIDI region on a MIDI track.
++	 *
++	 * If the track's playlist already contains a MIDI region, the earliest
++	 * one is returned, lengthened in place if it is shorter than \p beats.
++	 * Otherwise a new, empty MIDI region of that length is created at the
++	 * start of the playlist.
++	 *
++	 * This is the libardour equivalent of MidiTimeAxisView::add_region(),
++	 * which is only reachable when the GUI is present. No snapping is
++	 * applied: the region begins exactly at the start of the timeline.
++	 *
++	 * @param s Session Handle
++	 * @param mt MIDI track whose playlist is used
++	 * @param beats minimum required region length, in quarter notes
++	 * @returns the MidiRegion (may be nil)
++	 */
++	std::shared_ptr<ARDOUR::MidiRegion> ensure_midi_region (Session* s, std::shared_ptr<ARDOUR::MidiTrack> mt, double beats);
++
++	/** Set the tempo in effect at the start of the session.
++	 *
++	 * Performs the complete tempo map transaction: TempoMap::write_copy(),
++	 * the edit, then TempoMap::update() (or TempoMap::abort_update() if the
++	 * edit could not be made), and adds a Temporal::TempoCommand to the
++	 * session's undo history.
++	 *
++	 * @param s Session Handle
++	 * @param bpm new tempo in quarter notes per minute
++	 * @returns true on success
++	 */
++	bool set_session_tempo (Session* s, double bpm);
++
++	/** Import an audio or MIDI file onto a newly created track.
++	 *
++	 * The file is copied into the session (or linked, subject to the
++	 * session's "auto copy imported files" setting) via
++	 * Session::import_files(), a whole-file region is created from the
++	 * resulting sources and placed on a new track at \p pos.
++	 *
++	 * NOTE: this call is synchronous. Session::import_files() performs the
++	 * read/resample in the calling thread; a long file will block that
++	 * thread for the duration of the import.
++	 *
++	 * @param s Session Handle
++	 * @param path absolute path of the file to import
++	 * @param pos position on the timeline, in samples
++	 * @returns the PBD::ID of the new track as a string, or an empty string
++	 */
++	std::string import_audio_file (Session* s, const std::string& path, samplepos_t pos);
++
+ 	/** Create a null processor shared pointer
+ 	 *
+ 	 * This is useful for Track:bounce() to indicate no processing.
+diff --git a/libs/ardour/lua_api.cc b/libs/ardour/lua_api.cc
+index ec06287..33a1bcb 100644
+--- a/libs/ardour/lua_api.cc
++++ b/libs/ardour/lua_api.cc
+@@ -23,23 +23,32 @@
+ #include "pbd/compose.h"
+ #include "pbd/error.h"
+ #include "pbd/failed_constructor.h"
++#include "pbd/stateful_diff_command.h"
+ 
+ #include "ardour/analyser.h"
++#include "ardour/audio_track.h"
+ #include "ardour/audioengine.h"
+ #include "ardour/audiofilesource.h"
+ #include "ardour/audiosource.h"
++#include "ardour/import_status.h"
+ #include "ardour/internal_send.h"
+ #include "ardour/lua_api.h"
+ #include "ardour/luaproc.h"
+ #include "ardour/luascripting.h"
++#include "ardour/midi_region.h"
++#include "ardour/midi_source.h"
++#include "ardour/midi_track.h"
++#include "ardour/playlist.h"
+ #include "ardour/plugin.h"
+ #include "ardour/plugin_insert.h"
+ #include "ardour/plugin_manager.h"
++#include "ardour/rc_configuration.h"
+ #include "ardour/readable.h"
+ #include "ardour/region_factory.h"
+ #include "ardour/simple_export.h"
+ #include "ardour/source_factory.h"
+ #include "ardour/uri_map.h"
++#include "ardour/utils.h"
+ 
+ #include "LuaBridge/LuaBridge.h"
+ 
+@@ -147,6 +156,264 @@ ARDOUR::LuaAPI::new_send (Session* s, std::shared_ptr<Route> r, std::shared_ptr<
+ 	return std::shared_ptr<Processor> ();
+ }
+ 
++std::shared_ptr<MidiRegion>
++ARDOUR::LuaAPI::ensure_midi_region (Session* s, std::shared_ptr<MidiTrack> mt, double beats)
++{
++	if (!s || !mt || beats <= 0) {
++		return std::shared_ptr<MidiRegion> ();
++	}
++
++	std::shared_ptr<Playlist> pl = mt->playlist ();
++
++	if (!pl) {
++		return std::shared_ptr<MidiRegion> ();
++	}
++
++	const timecnt_t length (Temporal::Beats::from_double (beats), timepos_t (Temporal::Beats ()));
++
++	/* If this playlist already holds a MIDI region, hand back the earliest
++	 * one, growing it if the caller asked for more room than it has.
++	 */
++
++	std::shared_ptr<MidiRegion> existing;
++	std::shared_ptr<RegionList> rl = pl->region_list ();
++
++	for (RegionList::const_iterator i = rl->begin (); i != rl->end (); ++i) {
++		std::shared_ptr<MidiRegion> mr = std::dynamic_pointer_cast<MidiRegion> (*i);
++		if (!mr) {
++			continue;
++		}
++		if (!existing || mr->position () < existing->position ()) {
++			existing = mr;
++		}
++	}
++
++	if (existing) {
++		if (existing->length () < length) {
++			pl->clear_changes ();
++			existing->set_length (length);
++			s->add_command (new StatefulDiffCommand (pl));
++		}
++		return existing;
++	}
++
++	/* Nothing there yet. This mirrors MidiTimeAxisView::add_region(),
++	 * minus the editor's snapping and its own undo bracket.
++	 */
++
++	std::shared_ptr<Source> src = s->create_midi_source_by_stealing_name (mt);
++
++	if (!src) {
++		return std::shared_ptr<MidiRegion> ();
++	}
++
++	pl->clear_changes ();
++
++	const Temporal::Beats zero;
++	const timepos_t pos (zero);
++	const timecnt_t start (Temporal::BeatTime);
++
++	std::shared_ptr<Region> region;
++
++	/* the (empty) whole-file region, which appears in the source list but
++	 * is not used in any playlist
++	 */
++
++	{
++		PropertyList plist;
++
++		plist.add (ARDOUR::Properties::start, start);
++		plist.add (ARDOUR::Properties::length, length);
++		plist.add (ARDOUR::Properties::automatic, true);
++		plist.add (ARDOUR::Properties::whole_file, true);
++		plist.add (ARDOUR::Properties::name, PBD::basename_nosuffix (src->name ()));
++		plist.add (ARDOUR::Properties::opaque, s->config.get_draw_opaque_midi_regions ());
++
++		region = RegionFactory::create (src, plist);
++	}
++
++	if (!region) {
++		return std::shared_ptr<MidiRegion> ();
++	}
++
++	/* and the region actually used in the playlist */
++
++	{
++		PropertyList plist;
++		plist.add (ARDOUR::Properties::name, region->name ());
++		region = RegionFactory::create (region, plist);
++	}
++
++	if (!region) {
++		return std::shared_ptr<MidiRegion> ();
++	}
++
++	region->set_position (pos);
++	pl->add_region (region, pos, 1.0, false);
++	s->add_command (new StatefulDiffCommand (pl));
++
++	return std::dynamic_pointer_cast<MidiRegion> (region);
++}
++
++bool
++ARDOUR::LuaAPI::set_session_tempo (Session* s, double bpm)
++{
++	if (!s || bpm <= 0) {
++		return false;
++	}
++
++	Temporal::TempoMap::WritableSharedPtr map = Temporal::TempoMap::write_copy ();
++
++	if (!map) {
++		return false;
++	}
++
++	XMLNode& before (map->get_state ());
++
++	try {
++		/* constant (non-ramped) tempo in quarter notes per minute */
++		map->set_tempo (Temporal::Tempo (bpm, bpm, 4), timepos_t (Temporal::Beats ()));
++	} catch (...) {
++		delete &before;
++		Temporal::TempoMap::abort_update ();
++		return false;
++	}
++
++	if (Temporal::TempoMap::update (map)) {
++		delete &before;
++		Temporal::TempoMap::abort_update ();
++		return false;
++	}
++
++	XMLNode& after (map->get_state ());
++
++	s->begin_reversible_command (_("Set Tempo"));
++	s->add_command (new Temporal::TempoCommand (_("set tempo"), &before, &after));
++
++	if (!s->abort_empty_reversible_command ()) {
++		s->commit_reversible_command ();
++	}
++
++	return true;
++}
++
++std::string
++ARDOUR::LuaAPI::import_audio_file (Session* s, const std::string& path, samplepos_t pos)
++{
++	if (!s || path.empty ()) {
++		return std::string ();
++	}
++
++	if (!Glib::file_test (path, Glib::FILE_TEST_IS_REGULAR)) {
++		error << string_compose (_("Import: cannot open input sound file \"%1\""), path) << endmsg;
++		return std::string ();
++	}
++
++	ImportStatus status;
++
++	status.paths.push_back (path);
++	status.current = 1;
++	status.total = 1;
++	status.freeze = false;
++	status.quality = SrcBest;
++	status.replace_existing_source = false;
++	status.split_midi_channels = false;
++	status.import_markers = false;
++	status.done = false;
++	status.cancel = false;
++	status.progress = 0.0;
++
++	/* NB this is synchronous: Session::import_files() reads, converts and
++	 * writes in the calling thread and only then sets status.done. The GUI
++	 * runs it on its own thread purely so that it can show progress.
++	 */
++
++	s->import_files (status);
++	status.progress = 1.0;
++	status.done = true;
++	status.all_done = true;
++
++	if (status.cancel || status.sources.empty ()) {
++		return std::string ();
++	}
++
++	SourceList sources;
++
++	for (SourceList::const_iterator i = status.sources.begin (); i != status.sources.end (); ++i) {
++		if (!(*i)->empty ()) {
++			sources.push_back (*i);
++		}
++	}
++
++	if (sources.empty ()) {
++		return std::string ();
++	}
++
++	std::string region_name = PBD::basename_nosuffix (path);
++
++	while (RegionFactory::region_by_name (region_name)) {
++		region_name = bump_name_once (region_name, '.');
++	}
++
++	std::shared_ptr<Region> region;
++
++	{
++		PropertyList plist;
++
++		plist.add (ARDOUR::Properties::start, timecnt_t (sources[0]->type () == DataType::AUDIO ? Temporal::AudioTime : Temporal::BeatTime));
++		plist.add (ARDOUR::Properties::length, sources[0]->length ());
++		plist.add (ARDOUR::Properties::name, region_name);
++		plist.add (ARDOUR::Properties::layer, 0);
++		plist.add (ARDOUR::Properties::whole_file, true);
++		plist.add (ARDOUR::Properties::external, true);
++		plist.add (ARDOUR::Properties::opaque, true);
++
++		region = RegionFactory::create (sources, plist);
++	}
++
++	if (!region) {
++		return std::string ();
++	}
++
++	std::shared_ptr<Track> track;
++
++	if (sources[0]->type () == DataType::AUDIO) {
++		std::list<std::shared_ptr<AudioTrack> > at (
++			s->new_audio_track (sources.size (), 2, nullptr, 1, region_name,
++			                    PresentationInfo::max_order, Normal));
++		if (at.empty ()) {
++			return std::string ();
++		}
++		track = at.front ();
++	} else {
++		std::list<std::shared_ptr<MidiTrack> > mt (
++			s->new_midi_track (ChanCount (DataType::MIDI, 1), ChanCount (DataType::MIDI, 1),
++			                   Config->get_strict_io (), std::shared_ptr<PluginInfo> (), 0,
++			                   nullptr, 1, region_name, PresentationInfo::max_order, Normal, true));
++		if (mt.empty ()) {
++			return std::string ();
++		}
++		track = mt.front ();
++	}
++
++	std::shared_ptr<Playlist> pl = track->playlist ();
++
++	if (!pl) {
++		return track->id ().to_s ();
++	}
++
++	const timepos_t where (pos);
++
++	std::shared_ptr<Region> copy (RegionFactory::create (region, region->derive_properties ()));
++
++	pl->clear_changes ();
++	pl->clear_owned_changes ();
++	pl->add_region (copy, where);
++	pl->rdiff_and_add_command (s);
++
++	return track->id ().to_s ();
++}
++
+ std::string
+ ARDOUR::LuaAPI::dump_untagged_plugins ()
+ {
+diff --git a/libs/ardour/luabindings.cc b/libs/ardour/luabindings.cc
+index 5a6dc3b..130f87e 100644
+--- a/libs/ardour/luabindings.cc
++++ b/libs/ardour/luabindings.cc
+@@ -3184,6 +3184,9 @@ LuaBindings::common (lua_State* L)
+ 		.addFunction ("nil_proc", ARDOUR::LuaAPI::nil_processor)
+ 		.addFunction ("new_luaproc", ARDOUR::LuaAPI::new_luaproc)
+ 		.addFunction ("new_send", ARDOUR::LuaAPI::new_send)
++		.addFunction ("ensure_midi_region", ARDOUR::LuaAPI::ensure_midi_region)
++		.addFunction ("set_session_tempo", ARDOUR::LuaAPI::set_session_tempo)
++		.addFunction ("import_audio_file", ARDOUR::LuaAPI::import_audio_file)
+ 		.addFunction ("new_luaproc_with_time_domain", ARDOUR::LuaAPI::new_luaproc_with_time_domain)
+ 		.addFunction ("list_plugins", ARDOUR::LuaAPI::list_plugins)
+ 		.addFunction ("dump_untagged_plugins", ARDOUR::LuaAPI::dump_untagged_plugins)
