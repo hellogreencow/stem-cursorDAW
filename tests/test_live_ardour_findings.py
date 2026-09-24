@@ -85,3 +85,26 @@ def test_undo_shrinks_the_grown_region_back(tmp_path):
     assert undone.result["undone"] is True, undone.result
     assert undone.track("Chords")["regions"] == before.track("Chords")["regions"]
     assert undone.track("Chords")["regions"][0]["length"] == 480000
+
+
+# ----------------------------------------------------------------------
+# 3. new_midi_track's route-group argument: nil crashes Ardour 9
+# ----------------------------------------------------------------------
+# Live, 9.8: create_midi_track passing nil for the (9.x) shared_ptr<RouteGroup>
+# killed Ardour: "ArdourGUI[41973]: segfault at 0 ... error 4 in
+# libardour.so.3.0.0". 9.8's own scripts pass ARDOUR.RouteGroup (); on 8.12 that
+# is not callable and nil is right. The mock raises where Ardour 9 crashed.
+
+@requires_lua
+def test_create_midi_track_on_ardour_9_passes_a_nil_route_group_object(tmp_path):
+    res = call_bridge(tmp_path, "create_midi_track", {"name": "Keys"}, ardour="9")
+    assert res.error is None, res.error
+    assert res.result["track_id"] == "Keys"
+    assert any(c.startswith("new_midi_track name=Keys") for c in res.calls)
+
+
+@requires_lua
+def test_create_midi_track_on_ardour_8_still_passes_nil(tmp_path):
+    res = call_bridge(tmp_path, "create_midi_track", {"name": "Keys"}, ardour="8")
+    assert res.error is None, res.error
+    assert res.result["track_id"] == "Keys"

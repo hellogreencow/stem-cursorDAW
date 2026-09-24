@@ -823,6 +823,19 @@ local function audible_default_info ()
     return nil
 end
 
+-- "No route group" for Session:new_midi_track. The parameter is RouteGroup*
+-- in 8.x, where nil is the null pointer (8.12's own share/scripts/
+-- add_audio_track.lua passes nil) and ARDOUR.RouteGroup is not callable
+-- ("attempt to call a table value (field 'RouteGroup')"). In 9.x it is
+-- shared_ptr<RouteGroup>: a bare nil there made real Ardour 9.8 segfault
+-- ("ArdourGUI: segfault at 0 ... in libardour.so.3.0.0"), and 9.8's own
+-- scripts pass ARDOUR.RouteGroup (), the bound nil-shared_ptr constructor.
+local function no_route_group ()
+    local ok, g = pcall (function () return ARDOUR.RouteGroup () end)
+    if ok and g ~= nil then return g end
+    return nil
+end
+
 function handlers.create_midi_track (args)
     local name         = args.name or "Stem MIDI"
     local requested_id = args.instrument_id or ""
@@ -869,12 +882,13 @@ function handlers.create_midi_track (args)
     -- omitted; LuaBridge's Stack<bool>::get on a missing index is
     -- lua_toboolean(none) == false (libs/lua/LuaBridge/detail/Stack.h:607), which
     -- is the C++ default. The 6th parameter changed C++ type between 8 and 9
-    -- (RouteGroup* -> shared_ptr<RouteGroup>) but nil is correct for both.
+    -- (RouteGroup* -> shared_ptr<RouteGroup>): see no_route_group() — a bare
+    -- nil there segfaults real Ardour 9.8.
     local tl = Session:new_midi_track (
         ARDOUR.ChanCount (ARDOUR.DataType ("midi"), 1),
         ARDOUR.ChanCount (ARDOUR.DataType ("audio"), 2),
         true, instrument, nil,
-        nil, 1, name, ARDOUR.PresentationInfo.max_order,
+        no_route_group (), 1, name, ARDOUR.PresentationInfo.max_order,
         ARDOUR.TrackMode.Normal, true)
 
     for t in tl:iter () do

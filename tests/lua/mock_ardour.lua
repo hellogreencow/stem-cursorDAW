@@ -503,6 +503,16 @@ Session = {
   master_out=function() return nilptr() end,
   locations=function() return locations end,
   new_midi_track=function(self, ci, co, strict, inst, pset, grp, howmany, name, order, mode, autoconn)
+     -- The route-group parameter is RouteGroup* in 8.x (nil = no group) and
+     -- shared_ptr<RouteGroup> in 9.x, where a bare nil made real Ardour 9.8
+     -- segfault ("segfault at 0 ... in libardour.so"). A mock cannot crash the
+     -- host, so it raises instead; 9.x wants ARDOUR.RouteGroup ().
+     if ARDOUR_MAJOR == "9" and grp == nil then
+        error("SIMULATED CRASH: Ardour 9 segfaults on a nil shared_ptr<RouteGroup> in new_midi_track")
+     end
+     if ARDOUR_MAJOR ~= "9" and grp ~= nil then
+        error("new_midi_track: argument 6 must be RouteGroup* (nil) on Ardour 8")
+     end
      rec(string.format("new_midi_track name=%s howmany=%s strict=%s",
          tostring(name), tostring(howmany), tostring(strict)))
      local t = mkroute(name,"midi")
@@ -567,6 +577,12 @@ ARDOUR = {
           dB_to_coefficient=function(d) return 10 ^ (d / 20) end },
   ChanCount=function() return {} end, DataType=function() return {} end,
   PluginInfo=function() return nilptr() end,
+  -- 9.x: ARDOUR.RouteGroup () is the bound nil-shared_ptr constructor (9.8's
+  -- share/scripts/add_audio_track.lua passes it). 8.x: not callable
+  -- ("attempt to call a table value (field 'RouteGroup')", measured on 8.12).
+  RouteGroup=(ARDOUR_MAJOR == "9")
+      and setmetatable({}, {__call=function() return nilptr() end})
+      or {},
   Track=function() return nilptr() end,
   PluginType={ LV2=1, name=function(t,short) return "LV2" end },
   PresentationInfo={ max_order=4294967295 },
