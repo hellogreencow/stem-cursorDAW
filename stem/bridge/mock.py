@@ -135,6 +135,14 @@ class MockBridge(Bridge):
 
     def import_audio(self, track_id: str, file_path: str,
                      position_seconds: float = 0.0) -> str:
+        # Validate BEFORE taking the undo checkpoint. A checkpoint pushed by a
+        # call that then fails is a phantom undo entry: the user's next undo
+        # pops it, reports success, and changes nothing, while the edit they
+        # actually wanted reverted stays put. Same family as the Lua
+        # add_marker bug (begin_reversible_command before a call that could
+        # throw) — never open an undoable operation you might not finish.
+        if track_id and track_id not in self.tracks:
+            raise KeyError(f"no such track: {track_id}")
         action_id = self._checkpoint()
         if not track_id:
             track_id = f"aud_{uuid.uuid4().hex[:6]}"
@@ -142,8 +150,6 @@ class MockBridge(Bridge):
                 track_id=track_id, name=file_path.rsplit("/", 1)[-1],
                 kind="audio")
             self.audio[track_id] = []
-        if track_id not in self.tracks:
-            raise KeyError(f"no such track: {track_id}")
         self.audio.setdefault(track_id, []).append((file_path, position_seconds))
         return action_id
 

@@ -8,11 +8,13 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 from .registry import ToolRegistry
+from .verification import diff, fingerprint, journal_for, verification_enabled
 from ..bridge.base import MidiNote
 from ..theory import (
     Scale, ScaleType, Chord, ChordType, ChordProgression,
     DrumPattern, PatternLibrary,
 )
+from ..theory import analysis
 
 registry = ToolRegistry()
 
@@ -60,6 +62,90 @@ def get_midi_notes(args, ctx):
     return {"notes": [{"pitch": n.pitch, "start_beat": n.start_beat,
                        "length_beats": n.length_beats, "velocity": n.velocity}
                       for n in notes]}
+
+
+class MixerQuery(BaseModel):
+    track_id: Optional[str] = Field(
+        default=None, description="Limit to one track; omit for the whole mixer")
+
+
+@registry.register(
+    "get_mixer_state",
+    "Read the mixer: level (gain in dB), pan, mute and solo state, and the "
+    "plugin chain of every track. Use before any mix move so you know where "
+    "the faders actually are instead of guessing.",
+    MixerQuery)
+def get_mixer_state(args, ctx):
+    overview = ctx.bridge.get_session_overview()
+    tracks = overview.tracks
+    if args.track_id:
+        tracks = [t for t in tracks if t.track_id == args.track_id]
+        if not tracks:
+            return {"error": f"no such track: {args.track_id}"}
+    strips = [{
+        "track_id": t.track_id,
+        "name": t.name,
+        "kind": t.kind,
+        "gain_db": t.gain_db,
+        "pan": t.pan,
+        "muted": t.muted,
+        "soloed": t.soloed,
+        "plugins": list(t.plugins or []),
+    } for t in tracks]
+    return {
+        "tracks": strips,
+        "count": len(strips),
+        "tempo": overview.tempo,
+        "meter": overview.meter,
+        # Honesty about the bridge's limits: the Bridge protocol carries no
+        # sends/routing yet, so this tool reports what exists rather than
+        # inventing a routing graph. PLAN.md lists both; see TOOLBOX_AUDIT.md.
+        "not_reported": ["sends", "routing", "input/output connections",
+                         "meter levels (live signal)"],
+    }
+
+
+@registry.register(
+    "get_playhead",
+    "Where the playhead is right now, in seconds AND in bars/beats. Use this "
+    "when the user says 'here', 'at the playhead' or 'from where I am' so "
+    "notes land where they are looking.",
+    Empty)
+def get_playhead(args, ctx):
+    overview = ctx.bridge.get_session_overview()
+    seconds = overview.playhead_seconds or 0.0
+    tempo = overview.tempo or 120.0
+    beats = seconds * tempo / 60.0
+    beats_per_bar, note_value, meter_note = _parse_meter(overview.meter)
+    bar = int(beats // beats_per_bar) + 1
+    beat_in_bar = beats - (bar - 1) * beats_per_bar + 1
+    return {
+        "playhead_seconds": round(seconds, 6),
+        "playhead_beats": round(beats, 6),
+        "bar": bar,
+        "beat_in_bar": round(beat_in_bar, 6),
+        "tempo": tempo,
+        "meter": overview.meter,
+        "beats_per_bar": beats_per_bar,
+        "note": meter_note,
+    }
+
+
+def _parse_meter(meter: str):
+    """'4/4' -> (4.0, 4, note). Beats are quarter notes, which is what the
+    note tools use; a meter on a different note value is reported, not
+    silently reinterpreted."""
+    try:
+        numerator, denominator = str(meter).split("/")
+        numerator, denominator = float(numerator), int(denominator)
+    except Exception:
+        return 4.0, 4, f"could not parse meter {meter!r}; assuming 4/4"
+    if denominator == 4:
+        return numerator, denominator, None
+    # e.g. 6/8: quarter-note beats per bar = numerator * 4 / denominator
+    return (numerator * 4.0 / denominator, denominator,
+            f"{meter} expressed as {numerator * 4.0 / denominator:g} "
+            "quarter-note beats per bar")
 
 
 # ============ WRITE ============
@@ -206,11 +292,66 @@ class UndoArgs(BaseModel):
         default=None, description="Undo back to this action; None = last action")
 
 
-@registry.register("undo", "Undo a previous action by action_id (or the last one).",
-                   UndoArgs)
+@registry.register(
+    "undo",
+    "Undo a previous action by action_id (or the last one) AND check it "
+    "worked: Stem re-reads the session and reports whether it really came "
+    "back to the state before that action. Trust the 'restored' field, not "
+    "the fact that the call returned.",
+    UndoArgs)
 def undo(args, ctx):
-    ok = ctx.bridge.undo(args.action_id)
-    return {"undone": ok}
+    """Undo, then verify.
+
+    The bridge's undo is a request, not a guarantee. On a live Ardour it maps
+    to Editor:undo(1), which pops whatever Ardour last recorded — and a Stem
+    mutation that never created an undo record (a fader move, a tempo write)
+    is not on that stack at all, so the pop takes the *user's* previous edit
+    instead. That failure is silent unless somebody looks, so this tool looks:
+    it fingerprints the session before and after and compares the result with
+    the fingerprint taken before the action being undone.
+    """
+    bridge = ctx.bridge
+    journal = journal_for(bridge)
+    entry = journal.get(args.action_id)
+    watching = verification_enabled()
+    scope = sorted(set((entry.before.get("notes", {}) if entry else {}))
+                   | set((entry.after.get("notes", {}) if entry else {})))
+    before_undo = fingerprint(bridge, scope) if watching else None
+
+    ok = bridge.undo(args.action_id)
+    result = {"undone": ok}
+    if not ok:
+        result["note"] = ("the bridge refused the undo — unknown action_id, "
+                          "or nothing left on the undo stack")
+        return result
+    if not watching:
+        return result
+
+    after_undo = fingerprint(bridge, scope)
+    moved = diff(before_undo, after_undo)
+    result["changes"] = moved["details"]
+    if not moved["changed"] and moved.get("checked"):
+        result["restored"] = False
+        result["warning"] = (
+            "undo reported success but nothing in the session changed — the "
+            "action was probably never on the DAW's undo stack")
+        return result
+    if entry is None:
+        result["restored"] = None
+        result["note"] = ("no fingerprint on file for that action, so Stem "
+                          "cannot confirm what came back")
+        return result
+
+    drift = diff(entry.before, after_undo)
+    result["restored"] = not drift["changed"]
+    if drift["changed"]:
+        result["unexpected"] = drift["details"]
+        result["warning"] = (
+            "the session did not come back to its state before that action — "
+            "the undo may have reverted something else. Check the session "
+            "before making more changes.")
+    journal.forget_from(entry)
+    return result
 
 
 # ============ AUDIO HEALTH ============
@@ -231,10 +372,27 @@ def diagnose_audio(args, ctx):
     "Fix silent MIDI tracks so they produce sound on play. MIDI needs an "
     "instrument; a MIDI track with no synth (or a bare a-fluidsynth that has "
     "no soundfont loaded) is silent. This adds or replaces the synth with the "
-    "built-in audible one. Use when the user generated notes but hears nothing.",
-    Empty)
+    "built-in audible one. Use when the user generated notes but hears "
+    "nothing. NOTE: this one is NOT undoable from Stem — it replaces plugins "
+    "on the track. Say so before using it on a track the user has already "
+    "set up by hand.",
+    Empty, mutates=True)
 def make_tracks_audible(args, ctx):
-    return ctx.bridge.fix_silent_instruments()
+    """Declared mutating on purpose.
+
+    It swaps instrument plugins on existing tracks — a real, user-visible
+    mutation — and the bridge gives back no action_id for it. Registering it
+    as read-only (as it was) meant the registry never checked it and the
+    result never told anyone the change could not be undone. It now returns
+    an explicit undo verdict instead of a comfortable silence.
+    """
+    result = dict(ctx.bridge.fix_silent_instruments() or {})
+    if "action_id" not in result:
+        result.setdefault(
+            "undo_note",
+            "plugin swaps are not on Stem's undo journal; reverse this with "
+            "Ardour's own undo (Ctrl/Cmd-Z) or by re-adding the old plugin")
+    return result
 
 
 # ============ MUSIC INTELLIGENCE (deterministic theory) ============
@@ -382,3 +540,113 @@ def insert_bassline(args, ctx):
         beat += args.beats_per_chord
     action_id = ctx.bridge.insert_midi_notes(args.track_id, notes)
     return {"action_id": action_id, "notes_inserted": len(notes)}
+
+
+# ============ ANALYSIS (deterministic — reads existing material) ============
+
+class DetectKeyArgs(BaseModel):
+    track_id: Optional[str] = Field(
+        default=None,
+        description="Analyse one track; omit to analyse every MIDI track in "
+                    "the session together")
+
+
+@registry.register(
+    "detect_key",
+    "Work out what key the existing material is in (Krumhansl-Schmuckler "
+    "profile matching over the notes actually in the session — deterministic, "
+    "no guessing). Call this before writing new parts so what you add is in "
+    "key with what is already there. Returns confidence and the runners-up; "
+    "low confidence means the material is ambiguous, say so rather than "
+    "asserting a key.",
+    DetectKeyArgs)
+def detect_key(args, ctx):
+    notes, tracks, skipped = _collect_notes(ctx, args.track_id)
+    if not notes:
+        return {"detected": False,
+                "reason": "no MIDI notes found to analyse",
+                "tracks_analysed": tracks, "tracks_skipped": skipped}
+    result = analysis.detect_key(notes)
+    result["tracks_analysed"] = tracks
+    if skipped:
+        result["tracks_skipped"] = skipped
+    return result
+
+
+class DetectChordsArgs(BaseModel):
+    track_id: Optional[str] = Field(
+        default=None,
+        description="Analyse one track; omit to analyse every MIDI track")
+    segment_beats: float = Field(
+        default=4.0, gt=0,
+        description="Length of each analysis window in beats — one bar of 4/4 "
+                    "is 4.0, half-bar changes are 2.0")
+    key: Optional[str] = Field(
+        default=None,
+        description="Root of the key for roman numerals, e.g. 'C', 'F#'. "
+                    "Omitted: the key is detected from the same notes.")
+
+
+@registry.register(
+    "detect_chords",
+    "Name the chords in existing material, window by window, with roman "
+    "numerals in the detected (or given) key. Deterministic: chords are "
+    "matched against the same chord vocabulary the write tools place, so "
+    "anything named here can be re-voiced or extended exactly.",
+    DetectChordsArgs)
+def detect_chords(args, ctx):
+    notes, tracks, skipped = _collect_notes(ctx, args.track_id)
+    if not notes:
+        return {"segments": [], "count": 0,
+                "reason": "no MIDI notes found to analyse",
+                "tracks_analysed": tracks}
+    if args.key:
+        tonic = _root_index(args.key)
+        key_source = "given"
+        key_name = NOTE_NAMES[tonic]
+        key_scale = None
+        key_confidence = None
+    else:
+        detected = analysis.detect_key(notes)
+        tonic = detected.get("tonic_pitch_class")
+        key_source = "detected"
+        key_name = detected.get("key")
+        key_scale = detected.get("scale")
+        key_confidence = detected.get("confidence")
+    segments = analysis.detect_chords(notes, args.segment_beats, tonic)
+    return {
+        "segments": segments,
+        "count": len(segments),
+        "progression": [s["chord"] for s in segments if s.get("chord")],
+        "roman": [s.get("roman") for s in segments if s.get("roman")],
+        "key": key_name,
+        "key_scale": key_scale,
+        "key_source": key_source,
+        "key_confidence": key_confidence,
+        "segment_beats": args.segment_beats,
+        "tracks_analysed": tracks,
+        "tracks_skipped": skipped or None,
+    }
+
+
+def _collect_notes(ctx, track_id: Optional[str]):
+    """Notes from one track, or from every MIDI track in the session.
+
+    Returns (notes, tracks_read, tracks_skipped). A track that cannot be read
+    is reported in tracks_skipped with the reason instead of being dropped —
+    an analysis over half the session that claims to cover all of it is worse
+    than one that says what it missed.
+    """
+    if track_id:
+        return list(ctx.bridge.get_midi_notes(track_id)), [track_id], []
+    overview = ctx.bridge.get_session_overview()
+    notes, read, skipped = [], [], []
+    for track in overview.tracks:
+        if track.kind != "midi":
+            continue
+        try:
+            notes.extend(ctx.bridge.get_midi_notes(track.track_id))
+            read.append(track.track_id)
+        except Exception as e:
+            skipped.append({"track_id": track.track_id, "reason": str(e)})
+    return notes, read, skipped
