@@ -11,6 +11,20 @@ from typing import Optional
 from .base import Bridge, MidiNote, TrackInfo, SessionOverview
 
 
+def _as_note(n) -> MidiNote:
+    """Accept a MidiNote or the dict shape the Lua bridge speaks."""
+    if isinstance(n, MidiNote):
+        return MidiNote(pitch=int(n.pitch), start_beat=float(n.start_beat),
+                        length_beats=float(n.length_beats),
+                        velocity=int(n.velocity), channel=int(n.channel))
+    if isinstance(n, dict):
+        return MidiNote(pitch=int(n["pitch"]), start_beat=float(n["start_beat"]),
+                        length_beats=float(n["length_beats"]),
+                        velocity=int(n.get("velocity", 100)),
+                        channel=int(n.get("channel", 0)))
+    raise TypeError(f"unsupported note object: {n!r}")
+
+
 class MockBridge(Bridge):
     def __init__(self, name: str = "mock-session", tempo: float = 120.0):
         self.name = name
@@ -109,6 +123,40 @@ class MockBridge(Bridge):
             self.notes[track_id].append(shifted)
         return action_id
 
+    def replace_midi_notes(self, track_id: str, notes: list,
+                           start_beat: float = 0.0,
+                           end_beat: Optional[float] = None) -> str:
+        # Everything is checked before the checkpoint, for the reason given in
+        # import_audio: a failed call must not leave a phantom undo entry.
+        if track_id not in self.tracks:
+            raise KeyError(f"no such track: {track_id}")
+        if self.tracks[track_id].kind != "midi":
+            raise ValueError(f"track {track_id} is not a MIDI track")
+        if start_beat < 0:
+            raise ValueError(f"start_beat must be >= 0, got {start_beat}")
+        if end_beat is not None and end_beat <= start_beat:
+            raise ValueError(
+                f"end_beat ({end_beat}) must be after start_beat ({start_beat})")
+        incoming = [_as_note(n) for n in notes]
+        for n in incoming:
+            if not 0 <= n.pitch <= 127:
+                raise ValueError(f"pitch out of range 0-127: {n.pitch}")
+            if not 1 <= n.velocity <= 127:
+                raise ValueError(f"velocity out of range 1-127: {n.velocity}")
+            if n.start_beat < 0:
+                raise ValueError(f"note starts before beat 0: {n.start_beat}")
+            if n.length_beats <= 0:
+                raise ValueError(f"note length must be > 0: {n.length_beats}")
+
+        def in_range(n):
+            return n.start_beat >= start_beat and (
+                end_beat is None or n.start_beat < end_beat)
+
+        action_id = self._checkpoint()
+        kept = [n for n in self.notes[track_id] if not in_range(n)]
+        self.notes[track_id] = kept + incoming
+        return action_id
+
     def set_tempo(self, bpm: float) -> str:
         action_id = self._checkpoint()
         self.tempo = bpm
@@ -152,6 +200,23 @@ class MockBridge(Bridge):
             self.audio[track_id] = []
         self.audio.setdefault(track_id, []).append((file_path, position_seconds))
         return action_id
+
+    def add_instrument(self, track_id: str) -> dict:
+        """Mirrors the Lua add_instrument handler called with journal=true:
+        one undo entry when a synth is added, none when the track already
+        has an instrument. Validated before the checkpoint."""
+        if track_id not in self.tracks:
+            raise KeyError(f"no such track: {track_id}")
+        track = self.tracks[track_id]
+        if track.kind != "midi":
+            raise ValueError(f"track {track_id} is not a MIDI track")
+        if track.plugins:
+            return {"track_id": track_id, "instrument": True, "already": True}
+        action_id = self._checkpoint()
+        self.tracks[track_id].plugins.append({"id": "mock.synth", "preset": None})
+        return {"track_id": track_id, "instrument": True, "added": True,
+                "instrument_id": "mock.synth", "action_id": action_id,
+                "undoable": True}
 
     # ---- transport ----
     def transport_play(self) -> None:

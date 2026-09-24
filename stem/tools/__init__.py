@@ -13,7 +13,8 @@ want them already import them explicitly.
 """
 from . import core  # noqa: F401 - registers the core toolbox
 from . import ardour_tools  # noqa: F401 - registers ardour_help
+from . import midi_edit  # noqa: F401 - registers the note-editing tools
 
 registry = core.registry
 
-__all__ = ["core", "ardour_tools", "registry"]
+__all__ = ["core", "ardour_tools", "midi_edit", "registry"]
