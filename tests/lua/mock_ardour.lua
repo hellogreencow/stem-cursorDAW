@@ -466,7 +466,10 @@ Session = {
      if not HISTORY.cur or #HISTORY.cur.cmds == 0 then HISTORY.cur = nil return true end
      return false
   end,
-  collected_undo_commands=function() return HISTORY.cur and #HISTORY.cur.cmds or 0 end,
+  -- A BOOLEAN, not a count (session.h: `bool collected_undo_commands () const`).
+  -- Measured in real Ardour 8.12 and 9.8: false with nothing open or an open
+  -- but empty command, true once the open command holds a change.
+  collected_undo_commands=function() return HISTORY.cur ~= nil and #HISTORY.cur.cmds > 0 end,
   add_command=function(self, cmd) hist_add(cmd) end,
   add_stateful_diff_command=function(self, obj)
      rec("add_stateful_diff_command")

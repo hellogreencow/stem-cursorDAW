@@ -439,12 +439,21 @@ end
 -- (history_owner.cc:68). If something (a plugin GUI, another script) has left
 -- a command open with work in it, refuse up front rather than destroy that
 -- work. collected_undo_commands is bound in both (8.12 luabindings.cc:3121,
--- 9.8 :536). It reads 0 for an open-but-empty command, which this cannot see.
+-- 9.8 :536).
+--
+-- LIVE FIX: it returns a BOOLEAN (true = an open command holds changes), not
+-- a count. Measured in real Ardour 8.12 and 9.8: `type(...)` is "boolean",
+-- false with nothing open and for an open-but-empty command, true once a diff
+-- is added. The old `type (n) == "number" and n > 0` test was therefore never
+-- true, the guard never fired, and a Stem edit went ahead over the user's
+-- open command (which did not survive: collected went true -> false). A
+-- number is still accepted, in case a build ever returns a count.
 local function assert_no_open_command ()
     local ok, n = pcall (function () return Session:collected_undo_commands () end)
-    if ok and type (n) == "number" and n > 0 then
-        fail ("Ardour has an unfinished edit open (" .. n .. " pending undo "
-              .. "command(s)); finish or cancel it before Stem edits the session")
+    if not ok then return end
+    if n == true or (type (n) == "number" and n > 0) then
+        fail ("Ardour has an unfinished edit open (a reversible command that already "
+              .. "holds changes); finish or cancel it before Stem edits the session")
     end
 end
 
