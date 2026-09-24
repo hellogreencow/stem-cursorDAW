@@ -71,6 +71,21 @@ class Bridge(ABC):
                           start_beat: float = 0.0) -> str: ...
 
     @abstractmethod
+    def replace_midi_notes(self, track_id: str, notes: list,
+                           start_beat: float = 0.0,
+                           end_beat: Optional[float] = None) -> str:
+        """Remove every note on the track whose start lies in
+        [start_beat, end_beat) and write ``notes`` in their place, as ONE
+        undoable action. end_beat None means "to the end of the track".
+
+        ``notes`` carry absolute positions — the same beat frame
+        get_midi_notes returns — not offsets from start_beat. The range only
+        decides which existing notes go; a new note may land outside it (a
+        quantized 3.97 becomes 4.0). This is the one primitive every note
+        edit (move, delete, quantize, transpose) is built on: the protocol
+        could only add notes before it existed."""
+
+    @abstractmethod
     def set_tempo(self, bpm: float) -> str: ...
 
     @abstractmethod
@@ -111,6 +126,14 @@ class Bridge(ABC):
         no-op marker."""
         return {"supported": False,
                 "note": "audio diagnostics need a live Ardour session"}
+
+    def add_instrument(self, track_id: str) -> dict:
+        """Give one MIDI track an audible instrument: add the built-in synth
+        if it has none, or replace a silent a-fluidsynth. Not a free plugin
+        loader — the bridge picks the synth. The result carries an action_id
+        only when the bridge journaled the change so Stem's undo can reverse
+        it; Ardour's own undo keeps no record of plugin changes."""
+        return {"ok": False, "note": "not supported by this bridge"}
 
     def fix_silent_instruments(self) -> dict:
         """Make silent MIDI tracks audible (add/replace a working synth).
